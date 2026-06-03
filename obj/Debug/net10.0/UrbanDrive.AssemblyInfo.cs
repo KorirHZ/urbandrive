@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("UrbanDrive")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+55381c1f201915bca686e7f564d3ad2cc61229d1")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+74a5ebcb2a4f1d2dcbd03204d90a575959f8254f")]
 [assembly: System.Reflection.AssemblyProductAttribute("UrbanDrive")]
 [assembly: System.Reflection.AssemblyTitleAttribute("UrbanDrive")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
