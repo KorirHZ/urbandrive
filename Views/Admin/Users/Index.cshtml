@@ -1,0 +1,445 @@
+﻿@{
+    ViewData["Title"] = "User Management - UrbanDrive";
+    Layout = null;
+}
+
+@model List<UrbanDrive.Models.User>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>UrbanDrive Executive - Registered Users</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Segoe UI', sans-serif;
+                background: #f5f5f5;
+            }
+
+            :root {
+                --black: #1a1a1a;
+                --gold: #DAA520;
+                --white: #FFFFFF;
+                --success: #27ae60;
+                --danger: #e74c3c;
+            }
+
+            .navbar {
+                background: var(--black);
+                padding: 12px 20px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 1000;
+            }
+
+            .logo h1 {
+                color: var(--gold);
+                font-size: 20px;
+            }
+
+            .logo p {
+                color: var(--white);
+                font-size: 8px;
+                letter-spacing: 2px;
+            }
+
+            .nav-links a {
+                color: white;
+                text-decoration: none;
+                margin-left: 20px;
+            }
+
+                .nav-links a:hover, .nav-links a.active {
+                    color: var(--gold);
+                }
+
+            .mobile-menu-btn {
+                display: none;
+                background: none;
+                border: none;
+                color: var(--gold);
+                font-size: 24px;
+                cursor: pointer;
+            }
+
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: -280px;
+                width: 280px;
+                height: 100%;
+                background: var(--black);
+                z-index: 2000;
+                transition: left 0.3s;
+                padding: 80px 20px 20px;
+            }
+
+                .sidebar.open {
+                    left: 0;
+                }
+
+                .sidebar a {
+                    display: flex;
+                    gap: 12px;
+                    color: white;
+                    text-decoration: none;
+                    padding: 14px 0;
+                    border-bottom: 1px solid #333;
+                }
+
+                    .sidebar a i {
+                        width: 25px;
+                        color: var(--gold);
+                    }
+
+            .close-sidebar {
+                position: absolute;
+                top: 20px;
+                right: 20px;
+                background: none;
+                border: none;
+                color: var(--gold);
+                font-size: 24px;
+                cursor: pointer;
+            }
+
+            .overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 1500;
+                display: none;
+            }
+
+                .overlay.show {
+                    display: block;
+                }
+
+            .container {
+                margin-top: 70px;
+                padding: 20px;
+            }
+
+            .page-header {
+                margin-bottom: 25px;
+            }
+
+                .page-header h2 {
+                    border-left: 4px solid var(--gold);
+                    padding-left: 15px;
+                }
+
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 15px;
+                margin-bottom: 25px;
+            }
+
+            .stat-card {
+                background: white;
+                padding: 15px;
+                border-radius: 12px;
+                text-align: center;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            }
+
+                .stat-card i {
+                    font-size: 28px;
+                    color: var(--gold);
+                }
+
+                .stat-card h3 {
+                    font-size: 22px;
+                }
+
+            .table-container {
+                background: white;
+                border-radius: 12px;
+                overflow-x: auto;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                min-width: 700px;
+            }
+
+            th {
+                background: var(--black);
+                color: white;
+                padding: 12px;
+                text-align: left;
+            }
+
+            td {
+                padding: 10px;
+                border-bottom: 1px solid #eee;
+            }
+
+            tr:hover {
+                background: #f9f9f9;
+            }
+
+            .status-badge {
+                display: inline-block;
+                padding: 4px 10px;
+                border-radius: 20px;
+                font-size: 11px;
+                font-weight: bold;
+            }
+
+            .status-active {
+                background: var(--success);
+                color: white;
+            }
+
+            .status-inactive {
+                background: var(--danger);
+                color: white;
+            }
+
+            .btn-view {
+                padding: 5px 12px;
+                border-radius: 5px;
+                border: none;
+                cursor: pointer;
+                font-size: 11px;
+                background: var(--gold);
+                color: var(--black);
+            }
+
+            .modal {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 3000;
+                justify-content: center;
+                align-items: center;
+            }
+
+                .modal.show {
+                    display: flex;
+                }
+
+            .modal-content {
+                background: white;
+                border-radius: 12px;
+                max-width: 500px;
+                width: 90%;
+            }
+
+            .modal-header {
+                background: var(--black);
+                padding: 15px 20px;
+                display: flex;
+                justify-content: space-between;
+                border-radius: 12px 12px 0 0;
+            }
+
+                .modal-header h3 {
+                    color: var(--gold);
+                }
+
+            .close-modal {
+                background: none;
+                border: none;
+                color: white;
+                font-size: 24px;
+                cursor: pointer;
+            }
+
+            .modal-body {
+                padding: 20px;
+            }
+
+            .detail-row {
+                margin-bottom: 12px;
+                padding-bottom: 8px;
+                border-bottom: 1px solid #eee;
+            }
+
+                .detail-row strong {
+                    color: var(--gold);
+                    display: inline-block;
+                    width: 120px;
+                }
+
+            @@media (max-width: 992px) {
+                .nav-links {
+                    display: none;
+                }
+
+                .mobile-menu-btn {
+                    display: block;
+                }
+            }
+
+            @@media (max-width: 768px) {
+                .container {
+                    padding: 15px;
+                    margin-top: 60px;
+                }
+
+                .stats-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+            }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar" id="mobileSidebar">
+        <button class="close-sidebar" onclick="closeSidebar()">✕</button>
+        <a href="/Admin/Dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="/Admin/Drivers"><i class="fas fa-users"></i> Drivers</a>
+        <a href="/Admin/Vehicles"><i class="fas fa-car"></i> Vehicles</a>
+        <a href="/Admin/Users/Index" class="active"><i class="fas fa-user-friends"></i> Users</a>
+        <a href="/Admin/FuelRecords"><i class="fas fa-gas-pump"></i> Fuel Records</a>
+        <a href="/Admin/TripReports"><i class="fas fa-file-alt"></i> Trip Reports</a>
+        <a href="/Account/Logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+    <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+    <div class="navbar">
+        <div class="logo"><a href="/" style="text-decoration:none;"><h1>URBANDRIVE</h1><p>EXECUTIVE</p></a></div>
+        <div class="nav-links">
+            <a href="/Admin/Dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            <a href="/Admin/Drivers"><i class="fas fa-users"></i> Drivers</a>
+            <a href="/Admin/Vehicles"><i class="fas fa-car"></i> Vehicles</a>
+            <a href="/Admin/Users/Index" class="active"><i class="fas fa-user-friends"></i> Users</a>
+            <a href="/Admin/FuelRecords"><i class="fas fa-gas-pump"></i> Fuel</a>
+            <a href="/Admin/TripReports"><i class="fas fa-file-alt"></i> Reports</a>
+            <a href="/Account/Logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+        <button class="mobile-menu-btn" onclick="openSidebar()"><i class="fas fa-bars"></i></button>
+    </div>
+
+    <div class="container">
+        <div class="page-header">
+            <h2><i class="fas fa-user-friends"></i> Registered Users</h2>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card"><i class="fas fa-users"></i><h3>@Model.Count</h3><p>Total Users</p></div>
+            <div class="stat-card"><i class="fas fa-user-check"></i><h3>@Model.Count(u => u.IsActive)</h3><p>Active</p></div>
+            <div class="stat-card"><i class="fas fa-user-slash"></i><h3>@Model.Count(u => !u.IsActive)</h3><p>Inactive</p></div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Full Name</th>
+                        <th>Email</th>
+                        <th>Phone Number</th>
+                        <th>Role</th>
+                        <th>Registered On</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model)
+                    {
+                        <tr>
+                            <td>@user.UserId</td>
+                            <td>@user.FullName</td>
+                            <td>@user.Email</td>
+                            <td>@(user.PhoneNumber ?? "N/A")</td>
+                            <td>@user.Role</td>
+                            <td>@user.RegisteredAt.ToString("MMM dd, yyyy")</td>
+                            <td>
+                                <span class="status-badge @(user.IsActive ? "status-active" : "status-inactive")">
+                                    @(user.IsActive ? "Active" : "Inactive")
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn-view" onclick="viewUser(@user.UserId)">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- View User Modal -->
+    <div id="viewUserModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-user"></i> User Details</h3>
+                <button class="close-modal" onclick="closeViewUserModal()">✕</button>
+            </div>
+            <div class="modal-body" id="viewUserModalBody"></div>
+        </div>
+    </div>
+
+    <script>
+            function openSidebar() {
+                document.getElementById('mobileSidebar').classList.add('open');
+                document.getElementById('overlay').classList.add('show');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeSidebar() {
+                document.getElementById('mobileSidebar').classList.remove('open');
+                document.getElementById('overlay').classList.remove('show');
+                document.body.style.overflow = '';
+            }
+
+            async function viewUser(id) {
+                const response = await fetch(`/Admin/GetUserDetails/${id}`);
+                const user = await response.json();
+                const html = `
+                    <div class="detail-row"><strong>User ID:</strong> ${user.userId}</div>
+                    <div class="detail-row"><strong>Full Name:</strong> ${user.fullName}</div>
+                    <div class="detail-row"><strong>Email:</strong> ${user.email}</div>
+                    <div class="detail-row"><strong>Phone Number:</strong> ${user.phoneNumber || 'N/A'}</div>
+                    <div class="detail-row"><strong>Role:</strong> ${user.role}</div>
+                    <div class="detail-row"><strong>Status:</strong> ${user.isActive ? 'Active' : 'Inactive'}</div>
+                    <div class="detail-row"><strong>Registered On:</strong> ${user.registeredAt}</div>
+                    <div class="detail-row"><strong>Last Login:</strong> ${user.lastLoginAt || 'Never'}</div>
+                    <div class="detail-row"><strong>Total Bookings:</strong> ${user.totalBookings}</div>
+                `;
+                document.getElementById('viewUserModalBody').innerHTML = html;
+                document.getElementById('viewUserModal').classList.add('show');
+            }
+
+            function closeViewUserModal() {
+                document.getElementById('viewUserModal').classList.remove('show');
+            }
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeViewUserModal();
+                    closeSidebar();
+                }
+            });
+    </script>
+</body>
+</html>

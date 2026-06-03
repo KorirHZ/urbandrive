@@ -1,0 +1,573 @@
+﻿@{
+    ViewData["Title"] = "Vehicle Management - UrbanDrive";
+    Layout = null;
+}
+
+@model List<UrbanDrive.Models.Vehicle>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>UrbanDrive Executive - Vehicle Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: #f5f5f5;
+                min-height: 100vh;
+                overflow-x: hidden;
+            }
+
+            :root {
+                --black: #1a1a1a;
+                --gold: #DAA520;
+                --white: #FFFFFF;
+                --dark-gray: #666;
+                --success: #27ae60;
+                --danger: #e74c3c;
+                --warning: #f39c12;
+                --info: #3498db;
+            }
+
+            /* Navigation */
+            .navbar {
+                background: var(--black);
+                padding: 12px 20px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 1000;
+                flex-wrap: wrap;
+            }
+
+            .logo h1 {
+                color: var(--gold);
+                font-size: 20px;
+            }
+
+            .logo p {
+                color: var(--white);
+                font-size: 8px;
+                letter-spacing: 2px;
+            }
+
+            .desktop-nav {
+                display: flex;
+                align-items: center;
+                gap: 20px;
+                flex-wrap: wrap;
+            }
+
+                .desktop-nav a {
+                    color: var(--white);
+                    text-decoration: none;
+                    font-size: 14px;
+                    transition: color 0.3s;
+                }
+
+                    .desktop-nav a:hover,
+                    .desktop-nav a.active {
+                        color: var(--gold);
+                    }
+
+            .mobile-menu-btn {
+                display: none;
+                background: none;
+                border: none;
+                color: var(--gold);
+                font-size: 24px;
+                cursor: pointer;
+            }
+
+            /* Sidebar */
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: -280px;
+                width: 280px;
+                height: 100%;
+                background: var(--black);
+                z-index: 2000;
+                transition: left 0.3s ease;
+                padding: 80px 20px 20px;
+            }
+
+                .sidebar.open {
+                    left: 0;
+                }
+
+                .sidebar a {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    color: var(--white);
+                    text-decoration: none;
+                    padding: 14px 0;
+                    border-bottom: 1px solid #333;
+                }
+
+                    .sidebar a i {
+                        width: 25px;
+                        color: var(--gold);
+                    }
+
+                    .sidebar a:hover {
+                        color: var(--gold);
+                    }
+
+                    .sidebar a.active {
+                        color: var(--gold);
+                    }
+
+            .close-sidebar {
+                position: absolute;
+                top: 20px;
+                right: 20px;
+                background: none;
+                border: none;
+                color: var(--gold);
+                font-size: 24px;
+                cursor: pointer;
+            }
+
+            .overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 1500;
+                display: none;
+            }
+
+                .overlay.show {
+                    display: block;
+                }
+
+            /* Main Container */
+            .container {
+                margin-top: 70px;
+                padding: 20px;
+            }
+
+            /* Header */
+            .page-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 25px;
+                flex-wrap: wrap;
+                gap: 15px;
+            }
+
+                .page-header h2 {
+                    color: var(--black);
+                    border-left: 4px solid var(--gold);
+                    padding-left: 15px;
+                }
+
+            .btn-add {
+                background: var(--gold);
+                color: var(--black);
+                border: none;
+                padding: 10px 20px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: bold;
+                text-decoration: none;
+                display: inline-block;
+            }
+
+                .btn-add:hover {
+                    background: #e6b800;
+                    transform: translateY(-1px);
+                }
+
+            /* Stats */
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 15px;
+                margin-bottom: 25px;
+            }
+
+            .stat-card {
+                background: var(--white);
+                padding: 15px;
+                border-radius: 12px;
+                text-align: center;
+            }
+
+                .stat-card i {
+                    font-size: 28px;
+                    color: var(--gold);
+                }
+
+                .stat-card h3 {
+                    font-size: 22px;
+                }
+
+            /* Table */
+            .table-container {
+                background: var(--white);
+                border-radius: 12px;
+                overflow-x: auto;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                min-width: 800px;
+            }
+
+            th {
+                background: var(--black);
+                color: var(--white);
+                padding: 12px;
+                text-align: left;
+            }
+
+            td {
+                padding: 10px;
+                border-bottom: 1px solid #eee;
+            }
+
+            tr:hover {
+                background: #f9f9f9;
+            }
+
+            .status-badge {
+                display: inline-block;
+                padding: 4px 10px;
+                border-radius: 20px;
+                font-size: 11px;
+                font-weight: bold;
+            }
+
+            .status-available {
+                background: var(--success);
+                color: white;
+            }
+
+            .status-inuse {
+                background: var(--warning);
+                color: white;
+            }
+
+            .status-repair {
+                background: var(--danger);
+                color: white;
+            }
+
+            .btn-sm {
+                padding: 5px 10px;
+                border-radius: 5px;
+                border: none;
+                cursor: pointer;
+                font-size: 11px;
+                margin: 2px;
+            }
+
+            .btn-edit {
+                background: var(--info);
+                color: white;
+            }
+
+            .btn-delete {
+                background: var(--danger);
+                color: white;
+            }
+
+            .btn-view {
+                background: var(--gold);
+                color: var(--black);
+            }
+
+            /* Modal */
+            .modal {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 3000;
+                justify-content: center;
+                align-items: center;
+            }
+
+                .modal.show {
+                    display: flex;
+                }
+
+            .modal-content {
+                background: white;
+                border-radius: 12px;
+                max-width: 550px;
+                width: 90%;
+                max-height: 85vh;
+                overflow-y: auto;
+            }
+
+            .modal-header {
+                background: var(--black);
+                padding: 15px 20px;
+                display: flex;
+                justify-content: space-between;
+                color: white;
+                border-radius: 12px 12px 0 0;
+            }
+
+                .modal-header h3 {
+                    color: var(--gold);
+                }
+
+            .close-modal {
+                background: none;
+                border: none;
+                color: white;
+                font-size: 24px;
+                cursor: pointer;
+            }
+
+            .modal-body {
+                padding: 20px;
+            }
+
+            .form-group {
+                margin-bottom: 15px;
+            }
+
+                .form-group label {
+                    display: block;
+                    margin-bottom: 5px;
+                    font-weight: bold;
+                }
+
+                    .form-group label i {
+                        color: var(--gold);
+                        margin-right: 5px;
+                    }
+
+                .form-group input,
+                .form-group select,
+                .form-group textarea {
+                    width: 100%;
+                    padding: 10px;
+                    border: 1px solid #ddd;
+                    border-radius: 8px;
+                }
+
+            .form-row {
+                display: flex;
+                gap: 15px;
+            }
+
+                .form-row .form-group {
+                    flex: 1;
+                }
+
+            .alert {
+                padding: 12px;
+                border-radius: 8px;
+                margin-bottom: 15px;
+            }
+
+            .alert-success {
+                background: #d4edda;
+                color: #155724;
+                border: 1px solid #c3e6cb;
+            }
+
+            .alert-danger {
+                background: #f8d7da;
+                color: #721c24;
+                border: 1px solid #f5c6cb;
+            }
+
+            /* Mobile */
+            @@media (max-width: 992px) {
+                .desktop-nav {
+                    display: none;
+                }
+
+                .mobile-menu-btn {
+                    display: block;
+                }
+            }
+
+            @@media (max-width: 768px) {
+                .container {
+                    padding: 15px;
+                    margin-top: 60px;
+                }
+
+                .stats-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+
+                .form-row {
+                    flex-direction: column;
+                    gap: 10px;
+                }
+            }
+    </style>
+</head>
+<body>
+
+    <!-- Mobile Sidebar -->
+    <div class="sidebar" id="mobileSidebar">
+        <button class="close-sidebar" onclick="closeSidebar()">✕</button>
+        <a href="/Admin/Dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="/Admin/Drivers"><i class="fas fa-users"></i> Drivers</a>
+        <a href="/Admin/Vehicles" class="active"><i class="fas fa-car"></i> Vehicles</a>
+        <a href="/Admin/Users"><i class="fas fa-user-friends"></i> Users</a>
+        <a href="/Account/Logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+    <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+    <!-- Top Navigation -->
+    <div class="navbar">
+        <div class="logo">
+            <a href="/" style="text-decoration: none;">
+                <h1>URBANDRIVE</h1>
+                <p>EXECUTIVE</p>
+            </a>
+        </div>
+        <div class="desktop-nav">
+            <a href="/Admin/Dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            <a href="/Admin/Drivers"><i class="fas fa-users"></i> Drivers</a>
+            <a href="/Admin/Vehicles" class="active"><i class="fas fa-car"></i> Vehicles</a>
+            <a href="/Admin/Users"><i class="fas fa-user-friends"></i> Users</a>
+            <a href="/Account/Logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+        <button class="mobile-menu-btn" onclick="openSidebar()"><i class="fas fa-bars"></i></button>
+    </div>
+
+    <div class="container">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success"><i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]</div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]</div>
+        }
+
+        <div class="page-header">
+            <h2><i class="fas fa-car"></i> Vehicle Management</h2>
+            <a href="/Admin/CreateVehicle" class="btn-add"><i class="fas fa-plus"></i> Add New Vehicle</a>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card"><i class="fas fa-car"></i><h3>@Model.Count</h3><p>Total Vehicles</p></div>
+            <div class="stat-card"><i class="fas fa-check-circle"></i><h3>@Model.Count(v => v.Status == "Available")</h3><p>Available</p></div>
+            <div class="stat-card"><i class="fas fa-tools"></i><h3>@Model.Count(v => v.Status == "InRepair")</h3><p>In Repair</p></div>
+        </div>
+
+        <!-- Vehicles Table -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr><th>ID</th><th>Registration</th><th>Model</th><th>Capacity</th><th>Mileage</th><th>Status</th><th>Actions</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var vehicle in Model)
+                    {
+                        <tr>
+                            <td>@vehicle.VehicleId</td>
+                            <td>@vehicle.RegistrationNumber</td>
+                            <td>@vehicle.Model</td>
+                            <td>@vehicle.Capacity</td>
+                            <td>@vehicle.CurrentMileage km</td>
+                            <td>
+                                @if (vehicle.Status == "Available")
+                                {
+                                    <span class="status-badge status-available"><i class="fas fa-check-circle"></i> Available</span>
+                                }
+                                else if (vehicle.Status == "InUse")
+                                {
+                                    <span class="status-badge status-inuse"><i class="fas fa-car"></i> In Use</span>
+                                }
+                                else
+                                {
+                                    <span class="status-badge status-repair"><i class="fas fa-tools"></i> In Repair</span>
+                                }
+                            </td>
+                            <td>
+                                <a href="/Admin/EditVehicle/@vehicle.VehicleId" class="btn-sm btn-edit"><i class="fas fa-edit"></i> Edit</a>
+                                <a href="/Admin/DeleteVehicle/@vehicle.VehicleId" class="btn-sm btn-delete"><i class="fas fa-trash"></i> Delete</a>
+                                <button class="btn-sm btn-view" onclick="viewDetails(@vehicle.VehicleId)"><i class="fas fa-eye"></i> View</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Details Modal -->
+    <div id="detailsModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-info-circle"></i> Vehicle Details</h3>
+                <button class="close-modal" onclick="closeDetailsModal()">✕</button>
+            </div>
+            <div class="modal-body" id="detailsBody"></div>
+        </div>
+    </div>
+
+    <script>
+            function openSidebar() {
+                document.getElementById('mobileSidebar').classList.add('open');
+                document.getElementById('overlay').classList.add('show');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeSidebar() {
+                document.getElementById('mobileSidebar').classList.remove('open');
+                document.getElementById('overlay').classList.remove('show');
+                document.body.style.overflow = '';
+            }
+
+            async function viewDetails(id) {
+                const response = await fetch(`/Admin/GetVehicleDetails/${id}`);
+                const v = await response.json();
+                const html = `
+                    <div class="detail-row"><strong>Vehicle ID:</strong> ${v.vehicleId}</div>
+                    <div class="detail-row"><strong>Registration:</strong> ${v.registrationNumber}</div>
+                    <div class="detail-row"><strong>Model:</strong> ${v.model}</div>
+                    <div class="detail-row"><strong>Capacity:</strong> ${v.capacity} seats</div>
+                    <div class="detail-row"><strong>Status:</strong> ${v.status}</div>
+                    <div class="detail-row"><strong>Current Mileage:</strong> ${v.currentMileage} km</div>
+                    <div class="detail-row"><strong>Fuel Type:</strong> ${v.fuelType || 'Not specified'}</div>
+                    <div class="detail-row"><strong>Last Service:</strong> ${v.lastServiceDate || 'Not recorded'}</div>
+                    <div class="detail-row"><strong>Next Service Due:</strong> ${v.nextServiceDue || 'Not scheduled'}</div>
+                    <div class="detail-row"><strong>Notes:</strong> ${v.notes || 'No notes'}</div>
+                    <div class="detail-row"><strong>Created:</strong> ${v.createdAt}</div>
+                `;
+                document.getElementById('detailsBody').innerHTML = html;
+                document.getElementById('detailsModal').classList.add('show');
+            }
+
+            function closeDetailsModal() {
+                document.getElementById('detailsModal').classList.remove('show');
+            }
+    </script>
+</body>
+</html>

@@ -1,0 +1,320 @@
+﻿@{
+    ViewData["Title"] = "Email Verification - UrbanDrive";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>UrbanDrive Executive - Email Verification</title>
+
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+                min-height: 100vh;
+            }
+
+            /* Color Variables */
+            :root {
+                --black: #1a1a1a;
+                --gold: #DAA520;
+                --gold-light: #FFD700;
+                --white: #FFFFFF;
+                --success-green: #27ae60;
+                --error-red: #e74c3c;
+            }
+
+            /* Navigation Bar */
+            .navbar {
+                background: var(--black);
+                padding: 15px 50px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                flex-wrap: wrap;
+                border-bottom: 1px solid rgba(218, 165, 32, 0.3);
+            }
+
+            .logo h1 {
+                color: var(--gold);
+                font-size: 24px;
+            }
+
+            .logo p {
+                color: var(--white);
+                font-size: 10px;
+                letter-spacing: 2px;
+            }
+
+            .nav-links a {
+                color: var(--white);
+                text-decoration: none;
+                margin-left: 30px;
+                transition: color 0.3s;
+            }
+
+                .nav-links a:hover {
+                    color: var(--gold);
+                }
+
+            /* Verification Container */
+            .verification-container {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: calc(100vh - 80px);
+                padding: 40px 20px;
+            }
+
+            .verification-card {
+                background: var(--white);
+                border-radius: 20px;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                max-width: 500px;
+                width: 100%;
+                overflow: hidden;
+                animation: fadeInUp 0.5s ease;
+                text-align: center;
+            }
+
+            @@keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .verification-header {
+                padding: 30px;
+                text-align: center;
+            }
+
+                .verification-header.success {
+                    background: linear-gradient(135deg, #155724 0%, #27ae60 100%);
+                }
+
+                .verification-header.error {
+                    background: linear-gradient(135deg, #721c24 0%, #e74c3c 100%);
+                }
+
+                .verification-header i {
+                    font-size: 64px;
+                    color: var(--white);
+                    margin-bottom: 15px;
+                }
+
+                .verification-header h2 {
+                    color: var(--white);
+                    font-size: 28px;
+                    margin-bottom: 8px;
+                }
+
+                .verification-header p {
+                    color: rgba(255,255,255,0.9);
+                    font-size: 14px;
+                }
+
+            .verification-body {
+                padding: 30px;
+            }
+
+            .message-box {
+                margin-bottom: 25px;
+            }
+
+                .message-box p {
+                    color: var(--dark-gray);
+                    line-height: 1.6;
+                    margin-bottom: 15px;
+                }
+
+            .btn-gold {
+                background: var(--gold);
+                color: var(--black);
+                border: none;
+                padding: 12px 30px;
+                border-radius: 10px;
+                font-size: 16px;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.3s;
+                text-decoration: none;
+                display: inline-block;
+            }
+
+                .btn-gold:hover {
+                    background: var(--gold-light);
+                    transform: translateY(-2px);
+                    box-shadow: 0 5px 15px rgba(218, 165, 32, 0.3);
+                }
+
+            .btn-outline-gold {
+                background: transparent;
+                border: 1px solid var(--gold);
+                color: var(--gold);
+                padding: 12px 30px;
+                border-radius: 10px;
+                font-size: 16px;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.3s;
+                text-decoration: none;
+                display: inline-block;
+                margin-left: 10px;
+            }
+
+                .btn-outline-gold:hover {
+                    background: var(--gold);
+                    color: var(--black);
+                }
+
+            .button-group {
+                display: flex;
+                gap: 15px;
+                justify-content: center;
+                flex-wrap: wrap;
+                margin-top: 20px;
+            }
+
+            /* Mobile Responsive */
+            @@media (max-width: 768px) {
+                .navbar {
+                    padding: 15px 20px;
+                }
+
+                .logo h1 {
+                    font-size: 20px;
+                }
+
+                .nav-links a {
+                    margin-left: 20px;
+                    font-size: 14px;
+                }
+
+                .verification-header h2 {
+                    font-size: 24px;
+                }
+
+                .verification-body {
+                    padding: 25px;
+                }
+
+                .button-group {
+                    flex-direction: column;
+                }
+
+                .btn-gold, .btn-outline-gold {
+                    width: 100%;
+                    margin-left: 0;
+                }
+            }
+
+            @@media (max-width: 480px) {
+                .navbar {
+                    flex-direction: column;
+                    gap: 10px;
+                }
+
+                .nav-links a {
+                    margin: 0 10px;
+                }
+
+                .verification-card {
+                    margin: 0 15px;
+                }
+            }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation Bar -->
+    <div class="navbar">
+        <div class="logo">
+            <a href="/" style="text-decoration: none;">
+                <h1>URBANDRIVE</h1>
+                <p>EXECUTIVE</p>
+            </a>
+        </div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/Account/Login">Login</a>
+            <a href="/Account/Register">Register</a>
+        </div>
+    </div>
+
+    <!-- Verification Container -->
+    <div class="verification-container">
+        <div class="verification-card">
+            @if (ViewBag.Success == true)
+            {
+                <!-- SUCCESS STATE -->
+                <div class="verification-header success">
+                    <i class="fas fa-check-circle"></i>
+                    <h2>Email Verified!</h2>
+                    <p>Your account has been successfully activated</p>
+                </div>
+                <div class="verification-body">
+                    <div class="message-box">
+                        <i class="fas fa-envelope-open-text" style="font-size: 48px; color: var(--gold); margin-bottom: 15px; display: inline-block;"></i>
+                        <p>Thank you for verifying your email address. Your account is now active and ready to use.</p>
+                        <p>You can now login to your UrbanDrive account and start booking vehicles.</p>
+                    </div>
+                    <div class="button-group">
+                        <a href="/Account/Login" class="btn-gold">
+                            <i class="fas fa-sign-in-alt"></i> Login Now
+                        </a>
+                        <a href="/" class="btn-outline-gold">
+                            <i class="fas fa-home"></i> Go to Home
+                        </a>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <!-- ERROR STATE -->
+                <div class="verification-header error">
+                    <i class="fas fa-times-circle"></i>
+                    <h2>Verification Failed</h2>
+                    <p>We couldn't verify your email address</p>
+                </div>
+                <div class="verification-body">
+                    <div class="message-box">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: var(--gold); margin-bottom: 15px; display: inline-block;"></i>
+                        <p><strong>@ViewBag.ErrorMessage</strong></p>
+                        <p>This may have happened because:</p>
+                        <ul style="text-align: left; margin: 15px 0 0 20px; color: var(--dark-gray);">
+                            <li>The verification link has expired</li>
+                            <li>The link has already been used</li>
+                            <li>The link is invalid or corrupted</li>
+                        </ul>
+                    </div>
+                    <div class="button-group">
+                        <a href="/Account/Login" class="btn-gold">
+                            <i class="fas fa-sign-in-alt"></i> Go to Login
+                        </a>
+                        <a href="/Account/Register" class="btn-outline-gold">
+                            <i class="fas fa-user-plus"></i> Register Again
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,636 @@
+﻿@{
+    ViewData["Title"] = "Driver Management - UrbanDrive";
+}
+
+@model UrbanDrive.Models.DriverManagementViewModel
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>UrbanDrive Executive - Driver Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: #f5f5f5;
+                min-height: 100vh;
+            }
+
+            :root {
+                --black: #1a1a1a;
+                --gold: #DAA520;
+                --white: #FFFFFF;
+                --dark-gray: #666;
+                --success: #27ae60;
+                --danger: #e74c3c;
+                --warning: #f39c12;
+                --info: #3498db;
+            }
+
+            /* Navigation */
+            .navbar {
+                background: var(--black);
+                padding: 12px 20px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 1000;
+            }
+
+            .logo h1 {
+                color: var(--gold);
+                font-size: 20px;
+            }
+
+            .logo p {
+                color: var(--white);
+                font-size: 8px;
+                letter-spacing: 2px;
+            }
+
+            .nav-links a {
+                color: var(--white);
+                text-decoration: none;
+                margin-left: 20px;
+                font-size: 14px;
+            }
+
+                .nav-links a:hover {
+                    color: var(--gold);
+                }
+
+            /* Main Container */
+            .container {
+                margin-top: 70px;
+                padding: 20px;
+            }
+
+            /* Header */
+            .page-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 25px;
+                flex-wrap: wrap;
+            }
+
+                .page-header h2 {
+                    color: var(--black);
+                    border-left: 4px solid var(--gold);
+                    padding-left: 15px;
+                }
+
+            .btn-add {
+                background: var(--gold);
+                color: var(--black);
+                border: none;
+                padding: 10px 20px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: bold;
+            }
+
+                .btn-add:hover {
+                    background: #e6b800;
+                    transform: translateY(-1px);
+                }
+
+            /* Stats Cards */
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                gap: 15px;
+                margin-bottom: 25px;
+            }
+
+            .stat-card {
+                background: var(--white);
+                padding: 15px;
+                border-radius: 12px;
+                text-align: center;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            }
+
+                .stat-card i {
+                    font-size: 28px;
+                    color: var(--gold);
+                }
+
+                .stat-card h3 {
+                    font-size: 22px;
+                }
+
+            /* Table */
+            .table-container {
+                background: var(--white);
+                border-radius: 12px;
+                overflow-x: auto;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                min-width: 800px;
+            }
+
+            th {
+                background: var(--black);
+                color: var(--white);
+                padding: 12px;
+                text-align: left;
+            }
+
+            td {
+                padding: 10px;
+                border-bottom: 1px solid #eee;
+            }
+
+            tr:hover {
+                background: #f9f9f9;
+            }
+
+            .status-badge {
+                display: inline-block;
+                padding: 3px 10px;
+                border-radius: 20px;
+                font-size: 11px;
+                font-weight: bold;
+            }
+
+            .status-available {
+                background: var(--success);
+                color: white;
+            }
+
+            .status-unavailable {
+                background: var(--danger);
+                color: white;
+            }
+
+            .btn-sm {
+                padding: 5px 10px;
+                border-radius: 5px;
+                border: none;
+                cursor: pointer;
+                font-size: 11px;
+                margin: 2px;
+            }
+
+            .btn-edit {
+                background: var(--info);
+                color: white;
+            }
+
+            .btn-delete {
+                background: var(--danger);
+                color: white;
+            }
+
+            .btn-reset {
+                background: var(--warning);
+                color: white;
+            }
+
+            .btn-sm:hover {
+                opacity: 0.85;
+                transform: translateY(-1px);
+            }
+
+            /* Modal */
+            .modal {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 2000;
+                justify-content: center;
+                align-items: center;
+            }
+
+                .modal.show {
+                    display: flex;
+                }
+
+            .modal-content {
+                background: white;
+                border-radius: 12px;
+                max-width: 550px;
+                width: 90%;
+                max-height: 85vh;
+                overflow-y: auto;
+            }
+
+            .modal-header {
+                background: var(--black);
+                padding: 15px 20px;
+                display: flex;
+                justify-content: space-between;
+                color: white;
+                border-radius: 12px 12px 0 0;
+            }
+
+                .modal-header h3 {
+                    color: var(--gold);
+                }
+
+            .close-modal {
+                background: none;
+                border: none;
+                color: white;
+                font-size: 24px;
+                cursor: pointer;
+            }
+
+            .modal-body {
+                padding: 20px;
+            }
+
+            .form-group {
+                margin-bottom: 15px;
+            }
+
+                .form-group label {
+                    display: block;
+                    margin-bottom: 5px;
+                    font-weight: bold;
+                }
+
+                    .form-group label i {
+                        color: var(--gold);
+                        margin-right: 5px;
+                    }
+
+                .form-group input,
+                .form-group select,
+                .form-group textarea {
+                    width: 100%;
+                    padding: 10px;
+                    border: 1px solid #ddd;
+                    border-radius: 8px;
+                    font-size: 14px;
+                }
+
+                    .form-group input:focus,
+                    .form-group select:focus,
+                    .form-group textarea:focus {
+                        outline: none;
+                        border-color: var(--gold);
+                        box-shadow: 0 0 0 2px rgba(218,165,32,0.2);
+                    }
+
+                    .form-group input:disabled {
+                        background: #f5f5f5;
+                        color: #999;
+                    }
+
+            .form-row {
+                display: flex;
+                gap: 15px;
+            }
+
+                .form-row .form-group {
+                    flex: 1;
+                }
+
+            .password-hint {
+                font-size: 11px;
+                color: var(--dark-gray);
+                margin-top: 5px;
+            }
+
+            @@media (max-width: 768px) {
+                .container {
+                    padding: 15px;
+                    margin-top: 60px;
+                }
+
+                .page-header {
+                    flex-direction: column;
+                    gap: 15px;
+                    align-items: flex-start;
+                }
+
+                .stats-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+
+                .form-row {
+                    flex-direction: column;
+                    gap: 10px;
+                }
+            }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <div class="logo">
+            <a href="/" style="text-decoration: none;">
+                <h1>URBANDRIVE</h1>
+                <p>EXECUTIVE</p>
+            </a>
+        </div>
+        <div class="nav-links">
+            <a href="/Admin/Dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            <a href="/Admin/Drivers"><i class="fas fa-users"></i> Drivers</a>
+            <a href="/Admin/Vehicles"><i class="fas fa-car"></i> Vehicles</a>
+            <a href="/Account/Logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-header">
+            <h2><i class="fas fa-users"></i> Driver Management</h2>
+            <button class="btn-add" onclick="openAddModal()"><i class="fas fa-plus"></i> Add New Driver</button>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card"><i class="fas fa-users"></i><h3>@Model.TotalDrivers</h3><p>Total Drivers</p></div>
+            <div class="stat-card"><i class="fas fa-user-check"></i><h3>@Model.AvailableDrivers</h3><p>Available</p></div>
+            <div class="stat-card"><i class="fas fa-user-clock"></i><h3>@Model.UnavailableDrivers</h3><p>Unavailable</p></div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>License</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var driver in Model.Drivers)
+                    {
+                        <tr>
+                            <td>@driver.DriverId</td>
+                            <td>@driver.FullName</td>
+                            <td>@driver.Email</td>
+                            <td>@driver.PhoneNumber</td>
+                            <td>@driver.LicenseNumber</td>
+                            <td>
+                                @if (driver.IsAvailable)
+                                {
+                                    <span class="status-badge status-available"><i class="fas fa-check-circle"></i> Available</span>
+                                }
+                                else
+                                {
+                                    <span class="status-badge status-unavailable"><i class="fas fa-ban"></i> Unavailable</span>
+                                }
+                            </td>
+                            <td>
+                                <button class="btn-sm btn-edit" onclick="openEditModal(@driver.DriverId)"><i class="fas fa-edit"></i> Edit</button>
+                                <button class="btn-sm btn-reset" onclick="openSetPasswordModal(@driver.DriverId, '@driver.FullName')"><i class="fas fa-key"></i> Set Password</button>
+                                <button class="btn-sm btn-delete" onclick="deleteDriver(@driver.DriverId)"><i class="fas fa-trash"></i> Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add/Edit Driver Modal -->
+    <div id="driverModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle"><i class="fas fa-user-plus"></i> Add Driver</h3>
+                <button class="close-modal" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="driverId">
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> Full Name</label>
+                    <input type="text" id="fullName" placeholder="Enter full name">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-envelope"></i> Email</label>
+                    <input type="email" id="email" placeholder="driver@example.com">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><i class="fas fa-phone"></i> Phone</label>
+                        <input type="tel" id="phoneNumber" placeholder="0712345678">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-id-card"></i> License Number</label>
+                        <input type="text" id="licenseNumber" placeholder="B12345">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><i class="fas fa-calendar-alt"></i> License Expiry</label>
+                        <input type="date" id="licenseExpiryDate">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-calendar"></i> Hire Date</label>
+                        <input type="date" id="hireDate">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-toggle-on"></i> Availability</label>
+                    <select id="isAvailable">
+                        <option value="true">Available</option>
+                        <option value="false">Unavailable</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-comment"></i> Notes</label>
+                    <textarea id="notes" rows="2" placeholder="Additional notes..."></textarea>
+                </div>
+                <button class="btn-add" onclick="saveDriver()" style="width:100%;"><i class="fas fa-save"></i> Save Driver</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Set Password Modal -->
+    <div id="setPasswordModal" class="modal">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-key"></i> Set Driver Password</h3>
+                <button class="close-modal" onclick="closePasswordModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="setPasswordDriverId">
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> Driver Name</label>
+                    <input type="text" id="setPasswordDriverName" class="form-control" disabled style="background:#f5f5f5;">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-lock"></i> New Password</label>
+                    <input type="password" id="newPassword" class="form-control" placeholder="Enter new password">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-check-circle"></i> Confirm Password</label>
+                    <input type="password" id="confirmNewPassword" class="form-control" placeholder="Confirm new password">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-eye"></i> Show Password</label>
+                    <input type="checkbox" id="showPasswordCheckbox" onclick="togglePasswordVisibility()"> <span style="font-size:12px;">Show password</span>
+                </div>
+                <div class="password-hint">
+                    <i class="fas fa-info-circle"></i> Password must be at least 6 characters.
+                </div>
+                <button class="btn-add" onclick="setDriverPassword()" style="width:100%; margin-top:15px;">
+                    <i class="fas fa-save"></i> Set Password
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+            // Add/Edit Driver Functions
+            function openAddModal() {
+                document.getElementById('modalTitle').innerHTML = '<i class="fas fa-user-plus"></i> Add Driver';
+                document.getElementById('driverId').value = '';
+                document.getElementById('fullName').value = '';
+                document.getElementById('email').value = '';
+                document.getElementById('phoneNumber').value = '';
+                document.getElementById('licenseNumber').value = '';
+                document.getElementById('licenseExpiryDate').value = '';
+                document.getElementById('hireDate').value = '';
+                document.getElementById('isAvailable').value = 'true';
+                document.getElementById('notes').value = '';
+                document.getElementById('driverModal').classList.add('show');
+            }
+
+            async function openEditModal(driverId) {
+                const response = await fetch(`/Admin/GetDriver/${driverId}`);
+                const driver = await response.json();
+                document.getElementById('modalTitle').innerHTML = '<i class="fas fa-user-edit"></i> Edit Driver';
+                document.getElementById('driverId').value = driver.driverId;
+                document.getElementById('fullName').value = driver.fullName;
+                document.getElementById('email').value = driver.email;
+                document.getElementById('phoneNumber').value = driver.phoneNumber;
+                document.getElementById('licenseNumber').value = driver.licenseNumber;
+                document.getElementById('licenseExpiryDate').value = driver.licenseExpiryDate?.split('T')[0] || '';
+                document.getElementById('hireDate').value = driver.hireDate?.split('T')[0] || '';
+                document.getElementById('isAvailable').value = driver.isAvailable ? 'true' : 'false';
+                document.getElementById('notes').value = driver.notes || '';
+                document.getElementById('driverModal').classList.add('show');
+            }
+
+            async function saveDriver() {
+                const driverId = document.getElementById('driverId').value;
+                const data = {
+                    driverId: driverId || 0,
+                    fullName: document.getElementById('fullName').value,
+                    email: document.getElementById('email').value,
+                    phoneNumber: document.getElementById('phoneNumber').value,
+                    licenseNumber: document.getElementById('licenseNumber').value,
+                    licenseExpiryDate: document.getElementById('licenseExpiryDate').value,
+                    hireDate: document.getElementById('hireDate').value,
+                    isAvailable: document.getElementById('isAvailable').value === 'true',
+                    notes: document.getElementById('notes').value
+                };
+                const url = driverId ? '/Admin/UpdateDriver' : '/Admin/CreateDriver';
+                const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+                const result = await response.json();
+                if (result.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            }
+
+            async function deleteDriver(driverId) {
+                if (!confirm('Delete this driver? This action cannot be undone.')) return;
+                const response = await fetch('/Admin/DeleteDriver', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ driverId }) });
+                const result = await response.json();
+                if (result.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            }
+
+            // Set Password Functions
+            function openSetPasswordModal(driverId, driverName) {
+                document.getElementById('setPasswordDriverId').value = driverId;
+                document.getElementById('setPasswordDriverName').value = driverName;
+                document.getElementById('newPassword').value = '';
+                document.getElementById('confirmNewPassword').value = '';
+                document.getElementById('showPasswordCheckbox').checked = false;
+                document.getElementById('setPasswordModal').classList.add('show');
+            }
+
+            function closePasswordModal() {
+                document.getElementById('setPasswordModal').classList.remove('show');
+            }
+
+            function togglePasswordVisibility() {
+                var passwordField = document.getElementById('newPassword');
+                var confirmField = document.getElementById('confirmNewPassword');
+                var checkbox = document.getElementById('showPasswordCheckbox');
+
+                if (checkbox.checked) {
+                    passwordField.type = 'text';
+                    confirmField.type = 'text';
+                } else {
+                    passwordField.type = 'password';
+                    confirmField.type = 'password';
+                }
+            }
+
+            async function setDriverPassword() {
+                var driverId = document.getElementById('setPasswordDriverId').value;
+                var newPassword = document.getElementById('newPassword').value;
+                var confirmPassword = document.getElementById('confirmNewPassword').value;
+
+                // Validation
+                if (!newPassword || !confirmPassword) {
+                    alert('Please enter a password');
+                    return;
+                }
+
+                if (newPassword !== confirmPassword) {
+                    alert('Passwords do not match!');
+                    return;
+                }
+
+                if (newPassword.length < 6) {
+                    alert('Password must be at least 6 characters');
+                    return;
+                }
+
+                const response = await fetch('/Admin/SetDriverPassword', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ driverId: parseInt(driverId), newPassword: newPassword })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert('Password set successfully! The driver can now login with this password.');
+                    closePasswordModal();
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            }
+
+            function closeModal() {
+                document.getElementById('driverModal').classList.remove('show');
+            }
+    </script>
+</body>
+</html>

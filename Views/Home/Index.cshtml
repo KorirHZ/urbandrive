@@ -1,0 +1,958 @@
+﻿@{
+    ViewData["Title"] = "UrbanDrive Executive";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>UrbanDrive Executive - Luxury Vehicle Booking</title>
+
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #fff;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* Color Variables */
+        :root {
+            --black: #1a1a1a;
+            --gold: #DAA520;
+            --gold-light: #FFD700;
+            --white: #FFFFFF;
+            --gray: #f5f5f5;
+            --dark-gray: #666;
+            --transparent-card: rgba(26, 26, 26, 0.85);
+            --transparent-card-hover: rgba(26, 26, 26, 0.95);
+        }
+
+        /* Header / Navigation */
+        .header {
+            background-color: var(--black);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .logo h1 {
+            color: var(--gold);
+            font-size: 20px;
+        }
+
+        .logo p {
+            color: var(--white);
+            font-size: 10px;
+            letter-spacing: 2px;
+        }
+
+        /* Desktop Navigation */
+        .nav-menu {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .nav-menu a {
+            color: var(--white);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav-menu a:hover {
+            color: var(--gold);
+        }
+
+        .nav-right {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .currency {
+            color: var(--gold);
+        }
+
+        .user-profile {
+            color: var(--white);
+        }
+
+        .btn-outline {
+            border: 1px solid var(--gold);
+            background: transparent;
+            padding: 6px 15px;
+            color: var(--gold);
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            border-radius: 5px;
+        }
+
+        .btn-outline:hover {
+            background: var(--gold);
+            color: var(--black);
+        }
+
+        /* Mobile Menu Button */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--gold);
+            font-size: 28px;
+            cursor: pointer;
+        }
+
+        /* Mobile Sidebar */
+        .mobile-sidebar {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100%;
+            background: var(--black);
+            z-index: 2000;
+            transition: left 0.3s ease;
+            padding: 80px 20px 20px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+        }
+
+        .mobile-sidebar.open {
+            left: 0;
+        }
+
+        .mobile-sidebar a {
+            display: block;
+            color: var(--white);
+            text-decoration: none;
+            padding: 12px 0;
+            border-bottom: 1px solid #333;
+            transition: color 0.3s;
+        }
+
+        .mobile-sidebar a:hover {
+            color: var(--gold);
+        }
+
+        .mobile-sidebar .nav-right-mobile {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--gold);
+        }
+
+        .close-sidebar {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: var(--gold);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1500;
+            display: none;
+        }
+
+        .overlay.show {
+            display: block;
+        }
+
+        /* Hero Section with Background Image */
+        .hero {
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('/PINIMAGE4.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: var(--white);
+            padding: 120px 20px 80px;
+            position: relative;
+        }
+
+        .hero-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+        }
+
+        /* Hero Cards */
+        .hero-card {
+            flex: 1;
+            min-width: 280px;
+            max-width: 350px;
+            background: var(--transparent-card);
+            backdrop-filter: blur(5px);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 1px solid rgba(218, 165, 32, 0.3);
+        }
+
+        .hero-card:hover {
+            transform: translateY(-8px) rotate(1deg);
+            background: var(--transparent-card-hover);
+            border-color: var(--gold);
+            box-shadow: 0 20px 40px rgba(218, 165, 32, 0.2);
+            animation: subtleShake 0.3s ease-in-out;
+        }
+
+        .hero-card-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            opacity: 0.9;
+        }
+
+        .hero-card-content {
+            padding: 20px;
+            text-align: left;
+        }
+
+        .hero-card-content i {
+            font-size: 32px;
+            color: var(--gold);
+            margin-bottom: 10px;
+        }
+
+        .hero-card-content h3 {
+            color: var(--gold);
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .hero-card-content p {
+            color: #ddd;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+
+        /* Center Text */
+        .hero-text {
+            flex: 1;
+            text-align: center;
+            min-width: 280px;
+        }
+
+        .hero-text h2 {
+            font-size: 42px;
+            margin-bottom: 15px;
+            color: var(--gold);
+        }
+
+        .hero-subtitle {
+            font-size: 18px;
+            color: #eee;
+            max-width: 400px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+
+        /* Dancing/Shimmer Effect Keyframes */
+        @@keyframes subtleShake {
+            0% { transform: translateY(-8px) rotate(0deg); }
+            25% { transform: translateY(-10px) rotate(1deg); }
+            50% { transform: translateY(-8px) rotate(-1deg); }
+            75% { transform: translateY(-6px) rotate(0.5deg); }
+            100% { transform: translateY(-8px) rotate(0deg); }
+        }
+
+        /* Section Styles */
+        .section {
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        .section-dark {
+            background-color: var(--gray);
+        }
+
+        .section h2 {
+            font-size: 32px;
+            margin-bottom: 40px;
+            color: var(--black);
+            position: relative;
+            display: inline-block;
+        }
+
+        .section h2:after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: var(--gold);
+        }
+
+        /* How We Operate - Process Flow */
+            /* Process Images */
+            .process-image {
+                width: 60px;
+                height: 60px;
+                object-fit: cover;
+                border-radius: 50%;
+                margin-bottom: 15px;
+                border: 2px solid var(--gold);
+                padding: 5px;
+                transition: transform 0.3s;
+            }
+
+            .process-step:hover .process-image {
+                transform: scale(1.05);
+            }
+
+        .process-flow {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 40px;
+        }
+
+        .process-step {
+            flex: 1;
+            min-width: 250px;
+            text-align: center;
+            padding: 30px 20px;
+            background: var(--white);
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .process-step:hover {
+            transform: translateY(-5px);
+        }
+
+        .process-step i {
+            font-size: 48px;
+            color: var(--gold);
+            margin-bottom: 15px;
+        }
+
+        .step-number {
+            width: 50px;
+            height: 50px;
+            background: var(--gold);
+            color: var(--black);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            margin: 0 auto 15px;
+        }
+
+        .process-step h3 {
+            color: var(--gold);
+            margin-bottom: 15px;
+        }
+
+        .process-step p {
+            color: var(--dark-gray);
+            line-height: 1.6;
+        }
+
+        .process-description {
+            max-width: 800px;
+            margin: 0 auto 30px;
+            font-size: 18px;
+            color: var(--dark-gray);
+        }
+
+        /* Service Images */
+        .service-image {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 50%;
+            margin-bottom: 15px;
+            border: 2px solid var(--gold);
+            padding: 5px;
+            transition: transform 0.3s;
+        }
+
+        .card:hover .service-image {
+            transform: scale(1.05);
+        }
+
+        /* Cards Grid */
+        .cards-grid {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            background: var(--white);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            flex: 1;
+            min-width: 250px;
+            max-width: 350px;
+            transition: transform 0.3s;
+            text-align: center;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card i {
+            font-size: 48px;
+            color: var(--gold);
+            margin-bottom: 15px;
+        }
+
+        .card h3 {
+            color: var(--gold);
+            margin-bottom: 15px;
+        }
+
+        /* Testimonials */
+        .testimonials-grid {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .testimonial {
+            background: var(--white);
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            flex: 1;
+            min-width: 280px;
+            text-align: left;
+        }
+
+        .testimonial i {
+            color: var(--gold);
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .testimonial p {
+            font-style: italic;
+            margin-bottom: 15px;
+        }
+
+        .client-name {
+            color: var(--gold);
+            font-weight: bold;
+        }
+
+        /* FAQ */
+        .faq-container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: left;
+        }
+
+        .faq-item {
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: var(--white);
+        }
+
+        .faq-question {
+            background: var(--white);
+            padding: 15px 20px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            transition: background 0.3s;
+            border-radius: 5px;
+        }
+
+        .faq-question:hover {
+            background: var(--gray);
+        }
+
+        .faq-question .arrow {
+            color: var(--gold);
+        }
+
+        .faq-answer {
+            padding: 0 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: var(--gray);
+            border-radius: 0 0 5px 5px;
+        }
+
+        .faq-answer.show {
+            padding: 15px 20px;
+            max-height: 200px;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--black);
+            color: var(--white);
+            padding: 40px 20px 20px;
+        }
+
+        .footer-grid {
+            display: flex;
+            gap: 40px;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+
+        .footer-column {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .footer-column h4 {
+            color: var(--gold);
+            margin-bottom: 15px;
+        }
+
+        .footer-column a {
+            color: var(--white);
+            text-decoration: none;
+            display: block;
+            margin-bottom: 10px;
+            transition: color 0.3s;
+        }
+
+        .footer-column a:hover {
+            color: var(--gold);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 15px;
+        }
+
+        .social-links a {
+            font-size: 24px;
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+            font-size: 12px;
+        }
+
+        /* Card Button */
+        .card-btn {
+            background: transparent;
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            padding: 10px 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .card-btn:hover {
+            background: var(--gold);
+            color: var(--black);
+        }
+
+        /* Mobile Responsive */
+        @@media (max-width: 1024px) {
+            .hero-container {
+                flex-direction: column;
+            }
+            .hero-card {
+                max-width: 100%;
+                width: 100%;
+            }
+            .hero-text h2 {
+                font-size: 32px;
+            }
+            .hero-subtitle {
+                font-size: 16px;
+            }
+        }
+
+        @@media (max-width: 992px) {
+            .nav-menu {
+                display: none;
+            }
+            .mobile-menu-btn {
+                display: block;
+            }
+        }
+
+        @@media (max-width: 768px) {
+            .header {
+                padding: 12px 15px;
+            }
+            .hero {
+                padding: 100px 15px 50px;
+            }
+            .hero-text h2 {
+                font-size: 28px;
+            }
+            .hero-card-image {
+                height: 150px;
+            }
+            .process-step {
+                min-width: 100%;
+            }
+            .card {
+                min-width: 100%;
+            }
+            .testimonial {
+                min-width: 100%;
+            }
+            .footer-grid {
+                flex-direction: column;
+                gap: 25px;
+            }
+        }
+
+        @@media (max-width: 480px) {
+            .logo h1 {
+                font-size: 16px;
+            }
+            .logo p {
+                font-size: 8px;
+            }
+            .hero-text h2 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Mobile Sidebar -->
+    <div class="mobile-sidebar" id="mobileSidebar">
+        <button class="close-sidebar" onclick="closeSidebar()">✕</button>
+        <a href="/">Home</a>
+        <a href="#services">Our Services</a>
+        <a href="#how-it-works">How We Operate</a>
+        <a href="#about">About Us</a>
+        <a href="#contact">Contact</a>
+        <div class="nav-right-mobile">
+            <a href="/Account/Login">Log in</a>
+            <a href="/Account/Register">Sign up</a>
+        </div>
+    </div>
+    <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+    <!-- Header / Navigation -->
+    <div class="header">
+        <div class="logo">
+            <h1>URBANDRIVE</h1>
+            <p>EXECUTIVE</p>
+        </div>
+        <div class="nav-menu">
+            <a href="/">Home</a>
+            <a href="#services">Our Services</a>
+            <a href="#how-it-works">How We Operate</a>
+            <a href="#about">About Us</a>
+            <a href="#contact">Contact</a>
+            <div class="nav-right">
+                <a href="/Account/Login" class="btn-outline">Log in</a>
+                <a href="/Account/Register" class="btn-outline">Sign up</a>
+            </div>
+        </div>
+        <button class="mobile-menu-btn" onclick="openSidebar()">☰</button>
+    </div>
+
+    <!-- Hero Section with Background Image & Side Cards -->
+    <div class="hero">
+        <div class="hero-container">
+            <!-- Left Card -->
+            <div class="hero-card left-card" onclick="window.location.href='/Book/Corporate'">
+                <img src="/PINIMAGE3.jpg" alt="Corporate Fleet" class="hero-card-image">
+                <div class="hero-card-content">
+                    <i class="fas fa-building"></i>
+                    <h3>Corporate Fleet Management</h3>
+                    <p>Manage your company's entire vehicle fleet efficiently. Book vehicles for employees, track usage, monitor fuel consumption, and generate detailed trip reports.</p>
+                    <button class="card-btn">Book Vehicle →</button>
+                </div>
+            </div>
+
+            <!-- Center Text -->
+            <div class="hero-text">
+                <h2>Executive Vehicle Booking</h2>
+                <div class="hero-subtitle">
+                    Premium fleet management and chauffeur services for corporate and personal travel
+                </div>
+            </div>
+
+            <!-- Right Card -->
+            <div class="hero-card right-card" onclick="window.location.href='/Book/Chauffeur'">
+                <img src="/PINIMAGE4.jpg" alt="Executive Chauffeur" class="hero-card-image">
+                <div class="hero-card-content">
+                    <i class="fas fa-user-tie"></i>
+                    <h3>Executive Chauffeur Service</h3>
+                    <p>Professional chauffeur-driven vehicles for executives, VIPs, and special occasions. Our drivers are trained, licensed, and committed to providing a safe, comfortable service.</p>
+                    <button class="card-btn">Book Vehicle →</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- How We Operate Section -->
+    <div class="section" id="how-it-works">
+        <h2>How We Operate</h2>
+        <div class="process-description">
+            <p>Booking your vehicle with UrbanDrive is simple. Just follow three easy steps to reserve your ride with comfort, convenience, and reliability.</p>
+        </div>
+        <div class="process-flow">
+            <div class="process-step">
+                <div class="step-number">1</div>
+                <img src="/book.jpg" alt="Book Online" class="process-image">
+                <h3>Book Online</h3>
+                <p>Fill out our simple booking form with your pickup location, date, time, and vehicle preference.</p>
+            </div>
+            <div class="process-step">
+                <div class="step-number">2</div>
+                <img src="/PINIMAGE3.jpg" alt="Book Online" class="process-image">
+                <h3>Get Approved</h3>
+                <p>Admin reviews and approves your request, then assigns a vehicle and professional driver.</p>
+            </div>
+            <div class="process-step">
+                <div class="step-number">3</div>
+                <img src="/PINIMAGE4.jpg" alt="Book Online" class="process-image">
+                <h3>Enjoy Your Ride</h3>
+                <p>Your assigned driver and vehicle will arrive on time to take you to your destination in comfort.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Our Services Section -->
+    <div class="section section-dark" id="services">
+        <h2>Our Services</h2>
+        <div class="cards-grid">
+            <div class="card">
+                <img src="/fleet.jpg" alt="Fleet Management" class="service-image">
+                <h3>Fleet Management</h3>
+                <p>Complete vehicle tracking, maintenance scheduling, and utilization reports.</p>
+            </div>
+            <div class="card">
+                <img src="/bell.jpg" alt="Booking Notifications" class="service-image">
+                <h3>Booking Notifications</h3>
+                <p>Receive instant confirmations, reminders, and status updates via email or system notifications.</p>
+            </div>
+            <div class="card">
+                <img src="/trip.jpg" alt="Trip Management" class="service-image">
+                <h3>Trip Management</h3>
+                <p>Track booking details, trip schedules, destinations, and travel status from a centralized dashboard.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Why Choose Us Section  -->
+    <div class="section" id="about">
+        <h2>Why Choose Us</h2>
+        <div class="cards-grid">
+            <div class="card">
+                <img src="/driver.jpg" alt="Professional Chauffeurs" class="service-image">
+                <h3>Professional Chauffeurs</h3>
+                <p>Experienced, licensed, and courteous drivers.</p>
+            </div>
+            <div class="card">
+                <img src="/clock.jpg" alt="24/7 Availability" class="service-image">
+                <h3>24/7 Availability</h3>
+                <p>Round-the-clock service for your convenience.</p>
+            </div>
+            <div class="card">
+                <img src="/pinimage7.jpg" alt="Luxury Fleet" class="service-image">
+                <h3>Luxury Fleet</h3>
+                <p>Well-maintained premium vehicles.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- What Clients Say Section -->
+    <div class="section section-dark">
+        <h2>What Clients Say About Us</h2>
+        <div class="testimonials-grid">
+            <div class="testimonial">
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                    <img src="/PASSENGER4.webp" alt="John Mwangi" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold);">
+                    <div>
+                        <i class="fas fa-quote-left" style="color: var(--gold); font-size: 20px;"></i>
+                    </div>
+                </div>
+                <p>"Excellent service! The chauffeur was punctual and professional. Will definitely use UrbanDrive again."</p>
+                <p class="client-name">- Selina Kering</p>
+            </div>
+
+            <div class="testimonial">
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                    <img src="/PINIMAGE2.jpg" alt="Sarah Wanjiku" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold);">
+                    <div>
+                        <i class="fas fa-quote-left" style="color: var(--gold); font-size: 20px;"></i>
+                    </div>
+                </div>
+                <p>"Best executive car service in Nairobi. The vehicles are spotless and the booking process is seamless."</p>
+                <p class="client-name">- Sarah Wanjiku</p>
+            </div>
+
+            <div class="testimonial">
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                    <img src="/PASSENGER3.webp" alt="Michael Otieno" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold);">
+                    <div>
+                        <i class="fas fa-quote-left" style="color: var(--gold); font-size: 20px;"></i>
+                    </div>
+                </div>
+                <p>"Reliable and efficient fleet management. The online booking system is very easy to use."</p>
+                <p class="client-name">- Jane Atieno</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQ Section -->
+    <div class="section">
+        <h2>Frequently Asked Questions</h2>
+        <div class="faq-container">
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>How do I book a vehicle?</span>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="faq-answer">
+                    Simply click on any service card above, fill out the booking form with your pickup location, date, time, and any special requests. Click Continue to proceed.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>What payment methods do you accept?</span>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="faq-answer">
+                    We accept M-Pesa, Credit/Debit cards, and cash payments. Corporate accounts can be arranged for regular clients.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>Can I cancel or modify my booking?</span>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="faq-answer">
+                    Yes, you can cancel or modify your booking up to 2 hours before scheduled pickup time free of charge. Late cancellations may incur a fee.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>How do I track my vehicle?</span>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="faq-answer">
+                    Once your booking is approved, you can track your assigned vehicle and driver status from your user dashboard.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer" id="contact">
+        <div class="footer-grid">
+            <div class="footer-column">
+                <h4>Quick Links</h4>
+                <a href="/">Home</a>
+                <a href="#services">Our Services</a>
+                <a href="#how-it-works">How We Operate</a>
+                <a href="#about">About Us</a>
+                <a href="#contact">Contact</a>
+            </div>
+            <div class="footer-column">
+                <h4>Contact Us</h4>
+                <p><i class="fas fa-envelope"></i> info@urbandrive.com</p>
+                <p><i class="fas fa-phone"></i> +254 700 000 000</p>
+                <p><i class="fas fa-map-marker-alt"></i> Nairobi, Kenya</p>
+                <p><i class="fas fa-clock"></i> 24/7 Customer Support</p>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2025 UrbanDrive Executive. All rights reserved. | Premium Vehicle Booking Management System</p>
+        </div>
+    </div>
+
+    <script>
+        // Mobile Sidebar Functions
+        function openSidebar() {
+            document.getElementById('mobileSidebar').classList.add('open');
+            document.getElementById('overlay').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSidebar() {
+            document.getElementById('mobileSidebar').classList.remove('open');
+            document.getElementById('overlay').classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        // FAQ Toggle Function
+        function toggleFAQ(element) {
+            var answer = element.nextElementSibling;
+            var arrow = element.querySelector('.arrow');
+
+            if (answer.classList.contains('show')) {
+                answer.classList.remove('show');
+                arrow.innerHTML = '▼';
+            } else {
+                answer.classList.add('show');
+                arrow.innerHTML = '▲';
+            }
+        }
+
+        // Close sidebar when clicking on a link
+        document.querySelectorAll('.mobile-sidebar a').forEach(link => {
+            link.addEventListener('click', function() {
+                closeSidebar();
+            });
+        });
+    </script>
+</body>
+</html>

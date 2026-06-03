@@ -1,0 +1,201 @@
+﻿@{
+    ViewData["Title"] = "Edit Vehicle - UrbanDrive";
+    Layout = null;
+}
+
+@model UrbanDrive.Models.Vehicle
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Vehicle - UrbanDrive</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Segoe UI', sans-serif;
+                background: #f5f5f5;
+            }
+
+            :root {
+                --black: #1a1a1a;
+                --gold: #DAA520;
+                --white: #FFFFFF;
+            }
+
+            .navbar {
+                background: var(--black);
+                padding: 12px 20px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .logo h1 {
+                color: var(--gold);
+                font-size: 20px;
+            }
+
+            .nav-links a {
+                color: white;
+                text-decoration: none;
+                margin-left: 20px;
+            }
+
+            .container {
+                max-width: 600px;
+                margin: 80px auto 40px;
+                padding: 20px;
+            }
+
+            .card {
+                background: white;
+                border-radius: 12px;
+                padding: 25px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            }
+
+            h2 {
+                color: var(--black);
+                margin-bottom: 20px;
+                border-left: 4px solid var(--gold);
+                padding-left: 15px;
+            }
+
+            .form-group {
+                margin-bottom: 15px;
+            }
+
+            label {
+                display: block;
+                margin-bottom: 5px;
+                font-weight: bold;
+            }
+
+                label i {
+                    color: var(--gold);
+                    margin-right: 5px;
+                }
+
+            input, select, textarea {
+                width: 100%;
+                padding: 10px;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+            }
+
+            .form-row {
+                display: flex;
+                gap: 15px;
+            }
+
+                .form-row .form-group {
+                    flex: 1;
+                }
+
+            button {
+                background: var(--gold);
+                color: var(--black);
+                border: none;
+                padding: 12px 20px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: bold;
+                width: 100%;
+            }
+
+                button:hover {
+                    background: #e6b800;
+                }
+
+            .btn-cancel {
+                background: #666;
+                color: white;
+                margin-top: 10px;
+            }
+
+                .btn-cancel:hover {
+                    background: #555;
+                }
+
+            @@media (max-width: 768px) {
+                .form-row {
+                    flex-direction: column;
+                    gap: 10px;
+                }
+
+                .container {
+                    margin-top: 100px;
+                }
+            }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="logo"><h1>URBANDRIVE</h1><p>EXECUTIVE</p></div>
+        <div class="nav-links"><a href="/Admin/Vehicles"><i class="fas fa-arrow-left"></i> Back to Vehicles</a></div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2><i class="fas fa-edit"></i> Edit Vehicle</h2>
+            <form method="post" asp-action="EditVehicle" asp-route-id="@Model.VehicleId">
+                <input type="hidden" asp-for="VehicleId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><i class="fas fa-id-card"></i> Registration Number *</label>
+                        <input asp-for="RegistrationNumber" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-car"></i> Model *</label>
+                        <input asp-for="Model" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><i class="fas fa-users"></i> Capacity *</label>
+                        <input asp-for="Capacity" type="number" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-gas-pump"></i> Fuel Type</label>
+                        <select asp-for="FuelType"><option value="">-- Select --</option><option>Petrol</option><option>Diesel</option><option>Electric</option><option>Hybrid</option></select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><i class="fas fa-tachometer-alt"></i> Current Mileage (km)</label>
+                        <input asp-for="CurrentMileage" type="number">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-tools"></i> Status</label>
+                        <select asp-for="Status"><option value="Available">Available</option><option value="InUse">In Use</option><option value="InRepair">In Repair</option></select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><i class="fas fa-calendar-alt"></i> Last Service Date</label>
+                        <input asp-for="LastServiceDate" type="date">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-calendar-check"></i> Next Service Due</label>
+                        <input asp-for="NextServiceDue" type="date">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-comment"></i> Notes</label>
+                    <textarea asp-for="Notes" rows="3"></textarea>
+                </div>
+                <button type="submit"><i class="fas fa-save"></i> Update Vehicle</button>
+                <a href="/Admin/Vehicles" class="btn-cancel" style="display: block; text-align: center; text-decoration: none;"><i class="fas fa-times"></i> Cancel</a>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

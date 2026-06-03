@@ -1,0 +1,965 @@
+﻿@{
+    ViewData["Title"] = "Driver Dashboard - UrbanDrive";
+    Layout = null;
+}
+
+@model UrbanDrive.Models.DriverDashboardViewModel
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>UrbanDrive Executive - Driver Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: #f5f5f5;
+                min-height: 100vh;
+                overflow-x: hidden;
+            }
+
+            :root {
+                --black: #1a1a1a;
+                --gold: #DAA520;
+                --gold-light: #FFD700;
+                --white: #FFFFFF;
+                --dark-gray: #666;
+                --success: #27ae60;
+                --danger: #e74c3c;
+                --warning: #f39c12;
+                --info: #3498db;
+                --pending: #f39c12;
+                --approved: #27ae60;
+                --completed: #3498db;
+            }
+
+            /* Navigation Bar */
+            .navbar {
+                background: var(--black);
+                padding: 12px 20px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 1000;
+                flex-wrap: wrap;
+            }
+
+            .logo h1 {
+                color: var(--gold);
+                font-size: 20px;
+            }
+
+            .logo p {
+                color: var(--white);
+                font-size: 8px;
+                letter-spacing: 2px;
+            }
+
+            .nav-links {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                flex-wrap: wrap;
+            }
+
+                .nav-links a {
+                    color: var(--white);
+                    text-decoration: none;
+                    font-size: 14px;
+                    transition: color 0.3s;
+                }
+
+                    .nav-links a:hover {
+                        color: var(--gold);
+                    }
+
+            /* Mobile Menu Button */
+            .mobile-menu-btn {
+                display: none;
+                background: none;
+                border: none;
+                color: var(--gold);
+                font-size: 24px;
+                cursor: pointer;
+            }
+
+            /* Mobile Sidebar */
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: -280px;
+                width: 280px;
+                height: 100%;
+                background: var(--black);
+                z-index: 2000;
+                transition: left 0.3s ease;
+                padding: 80px 20px 20px;
+                box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+            }
+
+                .sidebar.open {
+                    left: 0;
+                }
+
+                .sidebar a {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    color: var(--white);
+                    text-decoration: none;
+                    padding: 14px 0;
+                    border-bottom: 1px solid #333;
+                    transition: color 0.3s;
+                }
+
+                    .sidebar a i {
+                        width: 25px;
+                        color: var(--gold);
+                    }
+
+                    .sidebar a:hover {
+                        color: var(--gold);
+                    }
+
+            .close-sidebar {
+                position: absolute;
+                top: 20px;
+                right: 20px;
+                background: none;
+                border: none;
+                color: var(--gold);
+                font-size: 24px;
+                cursor: pointer;
+            }
+
+            .overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 1500;
+                display: none;
+            }
+
+                .overlay.show {
+                    display: block;
+                }
+
+            /* Main Container */
+            .dashboard-container {
+                margin-top: 70px;
+                padding: 20px;
+            }
+
+            /* Welcome Card */
+            .welcome-card {
+                background: linear-gradient(135deg, var(--black) 0%, #2a2a2a 100%);
+                padding: 20px;
+                border-radius: 15px;
+                margin-bottom: 25px;
+                color: var(--white);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 15px;
+            }
+
+            .welcome-text h2 {
+                font-size: 22px;
+                margin-bottom: 5px;
+            }
+
+                .welcome-text h2 i {
+                    color: var(--gold);
+                    margin-right: 10px;
+                }
+
+            .welcome-text p {
+                font-size: 14px;
+                color: #ccc;
+            }
+
+            /* Availability Toggle */
+            .availability-toggle {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                background: rgba(255,255,255,0.1);
+                padding: 10px 20px;
+                border-radius: 50px;
+            }
+
+                .availability-toggle span {
+                    font-size: 14px;
+                }
+
+            .toggle-switch {
+                position: relative;
+                display: inline-block;
+                width: 60px;
+                height: 28px;
+            }
+
+                .toggle-switch input {
+                    opacity: 0;
+                    width: 0;
+                    height: 0;
+                }
+
+            .toggle-slider {
+                position: absolute;
+                cursor: pointer;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: var(--danger);
+                transition: 0.3s;
+                border-radius: 28px;
+            }
+
+                .toggle-slider:before {
+                    position: absolute;
+                    content: "";
+                    height: 22px;
+                    width: 22px;
+                    left: 3px;
+                    bottom: 3px;
+                    background-color: white;
+                    transition: 0.3s;
+                    border-radius: 50%;
+                }
+
+            input:checked + .toggle-slider {
+                background-color: var(--success);
+            }
+
+                input:checked + .toggle-slider:before {
+                    transform: translateX(32px);
+                }
+
+            /* Stats Cards */
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 15px;
+                margin-bottom: 25px;
+            }
+
+            .stat-card {
+                background: var(--white);
+                padding: 15px;
+                border-radius: 12px;
+                text-align: center;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+                transition: transform 0.3s;
+            }
+
+                .stat-card:hover {
+                    transform: translateY(-3px);
+                }
+
+                .stat-card i {
+                    font-size: 28px;
+                    color: var(--gold);
+                    margin-bottom: 8px;
+                }
+
+                .stat-card h3 {
+                    font-size: 24px;
+                    color: var(--black);
+                }
+
+                .stat-card p {
+                    font-size: 12px;
+                    color: var(--dark-gray);
+                }
+
+            /* Section Title */
+            .section-title {
+                font-size: 18px;
+                color: var(--black);
+                margin: 25px 0 15px 0;
+                border-left: 4px solid var(--gold);
+                padding-left: 12px;
+            }
+
+            /* Cards Container */
+            .cards-container {
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+                margin-bottom: 25px;
+            }
+
+            .trip-card {
+                background: var(--white);
+                border-radius: 12px;
+                padding: 15px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+                transition: transform 0.3s;
+            }
+
+                .trip-card:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                }
+
+            .trip-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 12px;
+                flex-wrap: wrap;
+            }
+
+            .trip-id {
+                font-weight: bold;
+                color: var(--gold);
+            }
+
+            .status-badge {
+                display: inline-block;
+                padding: 4px 10px;
+                border-radius: 20px;
+                font-size: 11px;
+                font-weight: bold;
+            }
+
+            .status-assigned {
+                background: var(--info);
+                color: white;
+            }
+
+            .status-progress {
+                background: var(--warning);
+                color: white;
+            }
+
+            .status-completed {
+                background: var(--success);
+                color: white;
+            }
+
+            .trip-details {
+                margin-bottom: 12px;
+            }
+
+            .trip-detail-item {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin-bottom: 8px;
+                font-size: 13px;
+            }
+
+                .trip-detail-item i {
+                    width: 20px;
+                    color: var(--gold);
+                }
+
+            .btn-trip {
+                padding: 8px 16px;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 13px;
+                font-weight: bold;
+                transition: all 0.3s;
+                width: 100%;
+            }
+
+            .btn-start {
+                background: var(--success);
+                color: white;
+            }
+
+            .btn-complete {
+                background: var(--warning);
+                color: white;
+            }
+
+            .btn-view {
+                background: var(--info);
+                color: white;
+            }
+
+                .btn-start:hover, .btn-complete:hover, .btn-view:hover {
+                    opacity: 0.85;
+                    transform: translateY(-1px);
+                }
+
+            /* Active Trip Card */
+            .active-trip-card {
+                background: linear-gradient(135deg, var(--black) 0%, #2a2a2a 100%);
+                color: var(--white);
+                border-radius: 12px;
+                padding: 20px;
+                margin-bottom: 25px;
+            }
+
+                .active-trip-card h3 {
+                    color: var(--gold);
+                    margin-bottom: 15px;
+                }
+
+            /* History Table */
+            .history-container {
+                background: var(--white);
+                border-radius: 12px;
+                overflow-x: auto;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            }
+
+            .history-table {
+                width: 100%;
+                border-collapse: collapse;
+                min-width: 600px;
+            }
+
+                .history-table th {
+                    background: var(--black);
+                    color: var(--white);
+                    padding: 12px;
+                    text-align: left;
+                    font-size: 13px;
+                }
+
+                .history-table td {
+                    padding: 10px;
+                    border-bottom: 1px solid #eee;
+                    font-size: 13px;
+                }
+
+                .history-table tr:hover {
+                    background: #f9f9f9;
+                }
+
+            /* Modal */
+            .modal {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 3000;
+                justify-content: center;
+                align-items: center;
+            }
+
+                .modal.show {
+                    display: flex;
+                }
+
+            .modal-content {
+                background: white;
+                border-radius: 12px;
+                max-width: 500px;
+                width: 90%;
+                max-height: 85vh;
+                overflow-y: auto;
+            }
+
+            .modal-header {
+                background: var(--black);
+                padding: 15px 20px;
+                display: flex;
+                justify-content: space-between;
+                color: white;
+                border-radius: 12px 12px 0 0;
+            }
+
+                .modal-header h3 {
+                    color: var(--gold);
+                }
+
+            .close-modal {
+                background: none;
+                border: none;
+                color: white;
+                font-size: 24px;
+                cursor: pointer;
+            }
+
+            .modal-body {
+                padding: 20px;
+            }
+
+            .form-group {
+                margin-bottom: 15px;
+            }
+
+                .form-group label {
+                    display: block;
+                    margin-bottom: 5px;
+                    font-weight: bold;
+                    font-size: 13px;
+                }
+
+                    .form-group label i {
+                        color: var(--gold);
+                        margin-right: 5px;
+                    }
+
+                .form-group input,
+                .form-group textarea {
+                    width: 100%;
+                    padding: 10px;
+                    border: 1px solid #ddd;
+                    border-radius: 8px;
+                    font-size: 14px;
+                }
+
+                .form-group textarea {
+                    resize: vertical;
+                    min-height: 80px;
+                }
+
+            .detail-row {
+                margin-bottom: 12px;
+                padding-bottom: 8px;
+                border-bottom: 1px solid #eee;
+            }
+
+                .detail-row strong {
+                    color: var(--gold);
+                    display: inline-block;
+                    width: 120px;
+                }
+
+            /* Loading Spinner */
+            .spinner {
+                display: inline-block;
+                width: 20px;
+                height: 20px;
+                border: 2px solid white;
+                border-top-color: transparent;
+                border-radius: 50%;
+                animation: spin 0.8s linear infinite;
+            }
+
+            @@keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            /* Mobile Responsive */
+            @@media (max-width: 992px) {
+                .nav-links {
+                    display: none;
+                }
+
+                .mobile-menu-btn {
+                    display: block;
+                }
+            }
+
+            @@media (max-width: 768px) {
+                .dashboard-container {
+                    padding: 15px;
+                    margin-top: 60px;
+                }
+
+                .welcome-card {
+                    flex-direction: column;
+                    text-align: center;
+                }
+
+                .stats-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+
+                .trip-header {
+                    flex-direction: column;
+                    gap: 8px;
+                    align-items: flex-start;
+                }
+
+                .trip-detail-item {
+                    font-size: 12px;
+                }
+
+                .btn-trip {
+                    width: 100%;
+                }
+            }
+
+            @@media (max-width: 480px) {
+                .stats-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 10px;
+                }
+
+                .stat-card {
+                    padding: 10px;
+                }
+
+                    .stat-card h3 {
+                        font-size: 18px;
+                    }
+
+                .logo h1 {
+                    font-size: 16px;
+                }
+
+                .history-table th,
+                .history-table td {
+                    font-size: 11px;
+                    padding: 8px 6px;
+                }
+            }
+    </style>
+</head>
+<body>
+
+    <!-- Mobile Sidebar -->
+    <div class="sidebar" id="mobileSidebar">
+        <button class="close-sidebar" onclick="closeSidebar()">✕</button>
+        <a href="/Driver/Dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="/Driver/TripHistory"><i class="fas fa-history"></i> Trip History</a>
+        <a href="/Account/Logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+    <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+    <!-- Navigation Bar -->
+    <div class="navbar">
+        <div class="logo">
+            <a href="/" style="text-decoration: none;">
+                <h1>URBANDRIVE</h1>
+                <p>EXECUTIVE</p>
+            </a>
+        </div>
+        <div class="nav-links">
+            <a href="/Driver/Dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            <a href="/Driver/TripHistory"><i class="fas fa-history"></i> Trip History</a>
+            <a href="/Account/Logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <span style="color: var(--gold);"><i class="fas fa-user-circle"></i> @User.Identity.Name</span>
+        </div>
+        <button class="mobile-menu-btn" onclick="openSidebar()"><i class="fas fa-bars"></i></button>
+    </div>
+
+    <div class="dashboard-container">
+        <!-- Welcome Section -->
+        <div class="welcome-card">
+            <div class="welcome-text">
+                <h2><i class="fas fa-truck"></i> Welcome, @User.Identity.Name!</h2>
+                <p><i class="fas fa-calendar-alt"></i> You have @Model.AssignedTrips.Count(t => t.AllocationStatus == "Assigned") upcoming trips</p>
+            </div>
+            <div class="availability-toggle">
+                <span><i class="fas fa-circle" style="color: @(Model.IsAvailable ? "#27ae60" : "#e74c3c");"></i> @(Model.IsAvailable ? "Available" : "Unavailable")</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="availabilityToggle" @(Model.IsAvailable ? "checked" : "") onchange="toggleAvailability()">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card"><i class="fas fa-calendar-alt"></i><h3>@Model.AssignedTrips.Count</h3><p>Assigned Trips</p></div>
+            <div class="stat-card"><i class="fas fa-play-circle"></i><h3>@Model.AssignedTrips.Count(t => t.AllocationStatus == "InProgress")</h3><p>In Progress</p></div>
+            <div class="stat-card"><i class="fas fa-check-circle"></i><h3>@Model.CompletedTripsCount</h3><p>Completed Trips</p></div>
+            <div class="stat-card"><i class="fas fa-road"></i><h3>@Model.TotalDistance km</h3><p>Total Distance</p></div>
+        </div>
+
+        <!-- My Assigned Trips -->
+        <h3 class="section-title"><i class="fas fa-list"></i> My Assigned Trips</h3>
+        <div class="cards-container" id="assignedTripsContainer">
+            @foreach (var trip in Model.AssignedTrips.Where(t => t.AllocationStatus != "Completed"))
+            {
+                <div class="trip-card">
+                    <div class="trip-header">
+                        <span class="trip-id"><i class="fas fa-hashtag"></i> BK@(trip.BookingId)</span>
+                        <span class="status-badge status-@(trip.AllocationStatus == "Assigned" ? "assigned" : "progress")">
+                            @if (trip.AllocationStatus == "Assigned")
+                            {
+                                <i class="fas fa-clock"></i>
+                            }
+                            else
+                            {
+
+                                <i class="fas fa-play"></i>
+                            }
+                            @trip.AllocationStatus
+                        </span>
+                    </div>
+                    <div class="trip-details">
+                        <div class="trip-detail-item"><i class="fas fa-map-marker-alt"></i> <strong>Destination:</strong> @trip.Booking.Destination</div>
+                        <div class="trip-detail-item"><i class="fas fa-calendar"></i> <strong>Pickup:</strong> @trip.Booking.StartDate.ToString("MMM dd, yyyy 'at' hh:mm tt")</div>
+                        <div class="trip-detail-item"><i class="fas fa-user"></i> <strong>Passenger:</strong> @trip.Booking.User?.FullName</div>
+                        <div class="trip-detail-item"><i class="fas fa-phone"></i> <strong>Phone:</strong> @trip.Booking.User?.PhoneNumber</div>
+                        <div class="trip-detail-item"><i class="fas fa-car"></i> <strong>Vehicle:</strong> @trip.Vehicle?.Model (@trip.Vehicle?.RegistrationNumber)</div>
+                    </div>
+                    @if (trip.AllocationStatus == "Assigned")
+                    {
+                        <button class="btn-trip btn-start" onclick="openStartModal(@trip.AllocationId, '@trip.Booking.Destination', @trip.Vehicle?.CurrentMileage)"><i class="fas fa-play"></i> Start Trip</button>
+                    }
+                    else if (trip.AllocationStatus == "InProgress")
+                    {
+                        <button class="btn-trip btn-complete" onclick="openCompleteModal(@trip.AllocationId, '@trip.Booking.Destination')"><i class="fas fa-flag-checkered"></i> Complete Trip</button>
+                    }
+                </div>
+            }
+            @if (!Model.AssignedTrips.Any(t => t.AllocationStatus != "Completed"))
+            {
+                <div class="trip-card" style="text-align:center; padding:30px;">
+                    <i class="fas fa-check-circle" style="font-size:48px; color:var(--gold); margin-bottom:10px;"></i>
+                    <p>No assigned trips at the moment. Check back later!</p>
+                </div>
+            }
+        </div>
+
+        <!-- Recent Trip History -->
+        <h3 class="section-title"><i class="fas fa-history"></i> Recent Trip History (Last @Model.RecentTrips.Count)</h3>
+        <div class="history-container">
+            <table class="history-table">
+                <thead><tr><th>Date</th><th>Destination</th><th>Distance</th><th>Fuel</th><th>Status</th><th>Action</th></tr></thead>
+                <tbody>
+                    @foreach (var trip in Model.RecentTrips.Take(10))
+                    {
+                        <tr>
+                            <td>@trip.EndTime?.ToString("MMM dd, yyyy")</td>
+                            <td>@trip.Allocation?.Booking?.Destination</td>
+                            <td>@(trip.TotalDistance ?? 0) km</td>
+                            <td>@(trip.ActualFuelUsed ?? 0) L</td>
+                            <td><span class="status-badge status-completed"><i class="fas fa-check"></i> Completed</span></td>
+                            <td><button class="btn-trip btn-view" onclick="viewReport(@trip.TripReportId)" style="width:auto; padding:5px 12px;"><i class="fas fa-eye"></i> View</button></td>
+                        </tr>
+                    }
+                    @if (!Model.RecentTrips.Any())
+                    {
+                        <tr><td colspan="6" style="text-align:center;">No trip history yet. Complete your first trip!</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Start Trip Modal -->
+    <div id="startModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-play"></i> Start Trip</h3>
+                <button class="close-modal" onclick="closeStartModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="startAllocationId">
+                <div class="form-group">
+                    <label><i class="fas fa-map-marker-alt"></i> Destination</label>
+                    <input type="text" id="startDestination" class="form-control" disabled>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-tachometer-alt"></i> Current Mileage (km)</label>
+                    <input type="number" id="startMileage" class="form-control" placeholder="Enter current odometer reading" required>
+                </div>
+                <button class="btn-trip btn-start" onclick="startTrip()" style="width:100%; margin-top:10px;"><i class="fas fa-play"></i> Confirm Start Trip</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Complete Trip Modal -->
+    <div id="completeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-flag-checkered"></i> Complete Trip</h3>
+                <button class="close-modal" onclick="closeCompleteModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="completeAllocationId">
+                <div class="form-group">
+                    <label><i class="fas fa-map-marker-alt"></i> Destination</label>
+                    <input type="text" id="completeDestination" class="form-control" disabled>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-tachometer-alt"></i> End Mileage (km)</label>
+                    <input type="number" id="endMileage" class="form-control" placeholder="Enter ending odometer reading" required>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-gas-pump"></i> Fuel Used (Liters)</label>
+                    <input type="number" step="0.1" id="fuelUsed" class="form-control" placeholder="Enter fuel consumed" required>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-comment"></i> Trip Notes / Issues</label>
+                    <textarea id="driverNotes" rows="3" placeholder="Any issues, traffic, or notes about this trip..."></textarea>
+                </div>
+                <button class="btn-trip btn-complete" onclick="completeTrip()" style="width:100%; margin-top:10px;"><i class="fas fa-check"></i> Submit Trip Report</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Report Modal -->
+    <div id="reportModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-file-alt"></i> Trip Report Details</h3>
+                <button class="close-modal" onclick="closeReportModal()">✕</button>
+            </div>
+            <div class="modal-body" id="reportBody">
+                <!-- Content loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+            // Sidebar Functions
+            function openSidebar() {
+                document.getElementById('mobileSidebar').classList.add('open');
+                document.getElementById('overlay').classList.add('show');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeSidebar() {
+                document.getElementById('mobileSidebar').classList.remove('open');
+                document.getElementById('overlay').classList.remove('show');
+                document.body.style.overflow = '';
+            }
+
+            // Availability Toggle
+            async function toggleAvailability() {
+                const checkbox = document.getElementById('availabilityToggle');
+                const isAvailable = checkbox.checked;
+
+                const response = await fetch('/Driver/ToggleAvailability', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ isAvailable: isAvailable })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    location.reload();
+                }
+            }
+
+            // Start Trip Functions
+            function openStartModal(allocationId, destination, currentMileage) {
+                document.getElementById('startAllocationId').value = allocationId;
+                document.getElementById('startDestination').value = destination;
+                document.getElementById('startMileage').value = currentMileage || '';
+                document.getElementById('startModal').classList.add('show');
+            }
+
+            async function startTrip() {
+                const allocationId = document.getElementById('startAllocationId').value;
+                const startMileage = document.getElementById('startMileage').value;
+
+                if (!startMileage) {
+                    alert('Please enter current mileage');
+                    return;
+                }
+
+                const response = await fetch('/Driver/StartTrip', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ allocationId: parseInt(allocationId), startMileage: parseInt(startMileage) })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            }
+
+            function closeStartModal() {
+                document.getElementById('startModal').classList.remove('show');
+            }
+
+            // Complete Trip Functions
+            function openCompleteModal(allocationId, destination) {
+                document.getElementById('completeAllocationId').value = allocationId;
+                document.getElementById('completeDestination').value = destination;
+                document.getElementById('endMileage').value = '';
+                document.getElementById('fuelUsed').value = '';
+                document.getElementById('driverNotes').value = '';
+                document.getElementById('completeModal').classList.add('show');
+            }
+
+            async function completeTrip() {
+                const allocationId = document.getElementById('completeAllocationId').value;
+                const endMileage = document.getElementById('endMileage').value;
+                const fuelUsed = document.getElementById('fuelUsed').value;
+                const driverNotes = document.getElementById('driverNotes').value;
+
+                if (!endMileage || !fuelUsed) {
+                    alert('Please enter end mileage and fuel used');
+                    return;
+                }
+
+                const response = await fetch('/Driver/CompleteTrip', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ allocationId: parseInt(allocationId), endMileage: parseInt(endMileage), actualFuelUsed: parseFloat(fuelUsed), driverNotes: driverNotes })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            }
+
+            function closeCompleteModal() {
+                document.getElementById('completeModal').classList.remove('show');
+            }
+
+            // View Report Function
+            async function viewReport(tripReportId) {
+                const response = await fetch(`/Driver/GetTripReport/${tripReportId}`);
+                const report = await response.json();
+
+                const totalDistance = report.endMileage - report.startMileage;
+                const efficiency = totalDistance > 0 ? (report.fuelUsed / totalDistance * 100).toFixed(1) : 0;
+
+                const html = `
+                    <div class="detail-row"><strong>Booking ID:</strong> #BK${report.bookingId}</div>
+                    <div class="detail-row"><strong>Destination:</strong> ${report.destination}</div>
+                    <div class="detail-row"><strong>Date:</strong> ${report.endTime}</div>
+                    <div class="detail-row"><strong>Start Mileage:</strong> ${report.startMileage} km</div>
+                    <div class="detail-row"><strong>End Mileage:</strong> ${report.endMileage} km</div>
+                    <div class="detail-row"><strong>Total Distance:</strong> ${totalDistance} km</div>
+                    <div class="detail-row"><strong>Fuel Used:</strong> ${report.fuelUsed} Liters</div>
+                    <div class="detail-row"><strong>Fuel Efficiency:</strong> ${efficiency} L/100km</div>
+                    <div class="detail-row"><strong>Passenger:</strong> ${report.passengerName}</div>
+                    <div class="detail-row"><strong>Passenger Phone:</strong> ${report.passengerPhone}</div>
+                    <div class="detail-row"><strong>Vehicle:</strong> ${report.vehicleModel} (${report.vehicleReg})</div>
+                    <div class="detail-row"><strong>Driver Notes:</strong> ${report.driverNotes || 'No notes provided'}</div>
+                `;
+
+                document.getElementById('reportBody').innerHTML = html;
+                document.getElementById('reportModal').classList.add('show');
+            }
+
+            function closeReportModal() {
+                document.getElementById('reportModal').classList.remove('show');
+            }
+
+            // Close modals on escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeStartModal();
+                    closeCompleteModal();
+                    closeReportModal();
+                    closeSidebar();
+                }
+            });
+    </script>
+</body>
+</html>

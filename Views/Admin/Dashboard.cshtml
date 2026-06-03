@@ -1,0 +1,575 @@
+﻿@{
+    ViewData["Title"] = "Admin Dashboard - UrbanDrive";
+    Layout = null;
+}
+
+@model UrbanDrive.Models.AdminDashboardViewModel
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>UrbanDrive Executive - Admin Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        :root {
+            --black: #1a1a1a;
+            --gold: #DAA520;
+            --gold-light: #FFD700;
+            --white: #FFFFFF;
+            --dark-gray: #666;
+            --pending: #f39c12;
+            --approved: #27ae60;
+            --completed: #3498db;
+            --cancelled: #e74c3c;
+        }
+
+        /* Top Navigation Bar */
+        .navbar {
+            background: var(--black);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .logo h1 {
+            color: var(--gold);
+            font-size: 20px;
+        }
+
+        .logo p {
+            color: var(--white);
+            font-size: 8px;
+            letter-spacing: 2px;
+        }
+
+        /* Desktop Navigation */
+        .desktop-nav {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .desktop-nav a {
+            color: var(--white);
+            text-decoration: none;
+            transition: color 0.3s;
+            font-size: 14px;
+        }
+
+        .desktop-nav a:hover {
+            color: var(--gold);
+        }
+
+        /* Mobile Menu Button */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--gold);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        /* Mobile Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100%;
+            background: var(--black);
+            z-index: 2000;
+            transition: left 0.3s ease;
+            padding: 80px 20px 20px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+        }
+
+        .sidebar.open {
+            left: 0;
+        }
+
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--white);
+            text-decoration: none;
+            padding: 14px 0;
+            border-bottom: 1px solid #333;
+            transition: color 0.3s;
+            font-size: 15px;
+        }
+
+        .sidebar a i {
+            width: 25px;
+            color: var(--gold);
+        }
+
+        .sidebar a:hover {
+            color: var(--gold);
+        }
+
+        .close-sidebar {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: var(--gold);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1500;
+            display: none;
+        }
+
+        .overlay.show {
+            display: block;
+        }
+
+        /* Main Container */
+        .dashboard-container {
+            margin-top: 70px;
+            padding: 20px;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: var(--white);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .stat-card i {
+            font-size: 28px;
+            color: var(--gold);
+            margin-bottom: 8px;
+        }
+
+        .stat-card h3 {
+            font-size: 22px;
+            color: var(--black);
+        }
+
+        .stat-card p {
+            color: var(--dark-gray);
+            font-size: 12px;
+        }
+
+        /* Section Titles */
+        .section-title {
+            font-size: 18px;
+            color: var(--black);
+            margin: 25px 0 15px 0;
+            border-left: 4px solid var(--gold);
+            padding-left: 12px;
+        }
+
+        /* Tables */
+        .table-container {
+            background: var(--white);
+            border-radius: 12px;
+            overflow-x: auto;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        th {
+            background: var(--black);
+            color: var(--white);
+            padding: 12px 10px;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 13px;
+        }
+
+        tr:hover {
+            background: #f9f9f9;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .status-pending { background: var(--pending); color: white; }
+        .status-approved { background: var(--approved); color: white; }
+        .status-completed { background: var(--completed); color: white; }
+        .status-cancelled { background: var(--cancelled); color: white; }
+        .status-rejected { background: var(--cancelled); color: white; }
+
+        .btn-sm {
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            font-size: 11px;
+            margin: 2px;
+        }
+
+        .btn-approve { background: var(--approved); color: white; }
+        .btn-reject { background: var(--cancelled); color: white; }
+        .btn-view { background: var(--gold); color: var(--black); }
+        .btn-edit { background: #3498db; color: white; }
+        .btn-delete { background: #e74c3c; color: white; }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 3000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            background: var(--black);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .modal-header h3 { color: var(--gold); font-size: 18px; }
+        .modal-header .close-modal { background: none; border: none; color: white; font-size: 24px; cursor: pointer; }
+
+        .modal-body { padding: 20px; }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 13px; }
+        .form-group label i { color: var(--gold); margin-right: 5px; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;
+        }
+        .form-group textarea { resize: vertical; min-height: 60px; }
+
+        .alert { padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; }
+        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert-danger { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+        /* Mobile Responsive */
+        @@media (max-width: 992px) {
+            .desktop-nav { display: none; }
+            .mobile-menu-btn { display: block; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @@media (max-width: 768px) {
+            .dashboard-container { padding: 15px; margin-top: 60px; }
+            .stat-card h3 { font-size: 18px; }
+            .stat-card i { font-size: 24px; }
+            .section-title { font-size: 16px; }
+            td, th { font-size: 11px; padding: 8px 6px; }
+            .btn-sm { padding: 4px 8px; font-size: 10px; }
+        }
+
+        @@media (max-width: 480px) {
+            .stats-grid { gap: 10px; }
+            .stat-card { padding: 10px; }
+            .stat-card h3 { font-size: 16px; }
+            .logo h1 { font-size: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Mobile Sidebar -->
+    <div class="sidebar" id="mobileSidebar">
+        <button class="close-sidebar" onclick="closeSidebar()">✕</button>
+        <a href="/Admin/Dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="/Admin/Vehicles"><i class="fas fa-car"></i> Vehicles</a>
+        <a href="/Admin/Drivers"><i class="fas fa-users"></i> Drivers</a>
+        <a href="/Admin/Users"><i class="fas fa-user-friends"></i> Users</a>
+        <a href="/Admin/FuelRecords"><i class="fas fa-gas-pump"></i> Fuel Records</a>
+        <a href="/Admin/TripReports"><i class="fas fa-file-alt"></i> Trip Reports</a>
+        <a href="/Account/Logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+    <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+    <!-- Top Navigation Bar -->
+    <div class="navbar">
+        <div class="logo">
+            <a href="/" style="text-decoration: none;">
+                <h1>URBANDRIVE</h1>
+                <p>EXECUTIVE</p>
+            </a>
+        </div>
+        <div class="desktop-nav">
+            <a href="/Admin/Dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            <a href="/Admin/Vehicles"><i class="fas fa-car"></i> Vehicles</a>
+            <a href="/Admin/Drivers"><i class="fas fa-users"></i> Drivers</a>
+            <a href="/Admin/Users"><i class="fas fa-user-friends"></i> Users</a>
+            <a href="/Admin/FuelRecords"><i class="fas fa-gas-pump"></i> Fuel</a>
+            <a href="/Admin/TripReports"><i class="fas fa-file-alt"></i> Reports</a>
+            <a href="/Account/Logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+        <button class="mobile-menu-btn" onclick="openSidebar()"><i class="fas fa-bars"></i></button>
+    </div>
+
+    <!-- Main Dashboard Container -->
+    <div class="dashboard-container">
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card"><i class="fas fa-car"></i><h3>@Model.TotalVehicles</h3><p>Total Vehicles</p></div>
+            <div class="stat-card"><i class="fas fa-car-side"></i><h3>@Model.AvailableVehicles</h3><p>Available Vehicles</p></div>
+            <div class="stat-card"><i class="fas fa-users"></i><h3>@Model.TotalDrivers</h3><p>Total Drivers</p></div>
+            <div class="stat-card"><i class="fas fa-user-check"></i><h3>@Model.AvailableDrivers</h3><p>Available Drivers</p></div>
+            <div class="stat-card"><i class="fas fa-calendar-alt"></i><h3>@Model.TotalBookings</h3><p>Total Bookings</p></div>
+            <div class="stat-card"><i class="fas fa-clock"></i><h3>@Model.PendingBookings</h3><p>Pending Approval</p></div>
+            <div class="stat-card"><i class="fas fa-check-circle"></i><h3>@Model.CompletedBookings</h3><p>Completed Trips</p></div>
+            <div class="stat-card"><i class="fas fa-users"></i><h3>@Model.TotalUsers</h3><p>Registered Users</p></div>
+        </div>
+
+        <!-- Pending Approvals -->
+        <h3 class="section-title"><i class="fas fa-clock"></i> Pending Approvals <span style="color:var(--gold);">(@Model.PendingBookings)</span></h3>
+        <div class="table-container">
+            <table>
+                <thead><tr><th>ID</th><th>Requester</th><th>Destination</th><th>Pickup Date</th><th>Purpose</th><th>Action</th></tr</thead>
+                <tbody>
+                    @foreach (var booking in Model.PendingApprovals)
+                    {
+                        <tr>
+                            <td>#BK@(booking.BookingId)</td>
+                            <td>@booking.User?.FullName</td>
+                            <td>@booking.Destination</td>
+                            <td>@booking.StartDate.ToString("MMM dd, yyyy")</td>
+                            <td>@(booking.Purpose.Length > 25 ? booking.Purpose.Substring(0,25)+"..." : booking.Purpose)</td>
+                            <td>
+                                <button class="btn-sm btn-approve" onclick="openAllocateModal(@booking.BookingId, '@booking.Destination', '@booking.User?.FullName')"><i class="fas fa-check"></i> Approve</button>
+                                <button class="btn-sm btn-reject" onclick="rejectBooking(@booking.BookingId)"><i class="fas fa-times"></i> Reject</button>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.PendingApprovals.Any())
+                    {
+                        <tr><td colspan="6" style="text-align:center;">No pending approvals</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Recent Bookings -->
+        <h3 class="section-title"><i class="fas fa-history"></i> Recent Bookings</h3>
+        <div class="table-container">
+            <table>
+                <thead><tr><th>ID</th><th>Requester</th><th>Destination</th><th>Date</th><th>Status</th><th>Action</th></tr</thead>
+                <tbody>
+                    @foreach (var booking in Model.RecentBookings.Take(10))
+                    {
+                        <tr>
+                            <td>#BK@(booking.BookingId)</td>
+                            <td>@booking.User?.FullName</td>
+                            <td>@booking.Destination</td>
+                            <td>@booking.StartDate.ToString("MMM dd, yyyy")</td>
+                            <td><span class="status-badge status-@booking.Status.ToLower()">@booking.Status</span></td>
+                            <td><button class="btn-sm btn-view" onclick="viewBooking(@booking.BookingId)"><i class="fas fa-eye"></i> View</button></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Allocation Modal -->
+    <div id="allocateModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-exchange-alt"></i> Allocate Vehicle & Driver</h3>
+                <button class="close-modal" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="allocBookingId">
+                <div class="alert alert-info" style="background:#e8f4fd;color:#2196F3;">
+                    <i class="fas fa-info-circle"></i> <span id="allocBookingInfo"></span>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-car"></i> Select Vehicle</label>
+                    <select id="allocVehicleId" class="form-control"><option value="">-- Select Vehicle --</option></select>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> Select Driver</label>
+                    <select id="allocDriverId" class="form-control"><option value="">-- Select Driver --</option></select>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-comment"></i> Notes for Driver</label>
+                    <textarea id="allocNotesDriver" rows="2" placeholder="Optional instructions for driver..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-comment"></i> Notes for Passenger</label>
+                    <textarea id="allocNotesPassenger" rows="2" placeholder="Optional message for passenger..."></textarea>
+                </div>
+                <button class="btn-sm btn-approve" onclick="submitAllocation()" style="width:100%;padding:12px;"><i class="fas fa-check"></i> Confirm Allocation</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sidebar Functions
+        function openSidebar() {
+            document.getElementById('mobileSidebar').classList.add('open');
+            document.getElementById('overlay').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSidebar() {
+            document.getElementById('mobileSidebar').classList.remove('open');
+            document.getElementById('overlay').classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        document.querySelectorAll('.sidebar a').forEach(link => {
+            link.addEventListener('click', function() { closeSidebar(); });
+        });
+
+        // Allocation Modal Functions
+        async function openAllocateModal(bookingId, destination, requester) {
+            document.getElementById('allocBookingId').value = bookingId;
+            document.getElementById('allocBookingInfo').innerHTML = `<strong>Booking #BK${bookingId}</strong> - ${destination} (${requester})`;
+            
+            // Load available vehicles
+            const vehicleRes = await fetch('/Admin/GetAvailableVehicles');
+            const vehicles = await vehicleRes.json();
+            const vehicleSelect = document.getElementById('allocVehicleId');
+            vehicleSelect.innerHTML = '<option value="">-- Select Vehicle --</option>';
+            vehicles.forEach(v => vehicleSelect.innerHTML += `<option value="${v.vehicleId}">${v.model} (${v.registrationNumber})</option>`);
+            
+            // Load available drivers
+            const driverRes = await fetch('/Admin/GetAvailableDrivers');
+            const drivers = await driverRes.json();
+            const driverSelect = document.getElementById('allocDriverId');
+            driverSelect.innerHTML = '<option value="">-- Select Driver --</option>';
+            drivers.forEach(d => driverSelect.innerHTML += `<option value="${d.driverId}">${d.name} (${d.licenseNumber})</option>`);
+            
+            document.getElementById('allocateModal').classList.add('show');
+        }
+
+        async function submitAllocation() {
+            const bookingId = document.getElementById('allocBookingId').value;
+            const vehicleId = document.getElementById('allocVehicleId').value;
+            const driverId = document.getElementById('allocDriverId').value;
+            const notesDriver = document.getElementById('allocNotesDriver').value;
+            const notesPassenger = document.getElementById('allocNotesPassenger').value;
+            
+            if (!vehicleId || !driverId) {
+                alert('Please select both vehicle and driver');
+                return;
+            }
+            
+            const response = await fetch('/Admin/AllocateBooking', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bookingId, vehicleId, driverId, notesForDriver: notesDriver, notesForPassenger: notesPassenger })
+            });
+            const result = await response.json();
+            if (result.success) {
+                alert('✓ Booking approved and allocated successfully! Emails sent to passenger and driver.');
+                location.reload();
+            } else {
+                alert('Error: ' + result.message);
+            }
+        }
+
+        async function rejectBooking(bookingId) {
+            if (!confirm('Reject this booking?')) return;
+            const response = await fetch('/Admin/RejectBooking', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bookingId })
+            });
+            const result = await response.json();
+            if (result.success) location.reload();
+            else alert('Error: ' + result.message);
+        }
+
+        function viewBooking(bookingId) {
+            window.location.href = `/Admin/BookingDetails?bookingId=${bookingId}`;
+        }
+
+        function closeModal() {
+            document.getElementById('allocateModal').classList.remove('show');
+        }
+
+        // Close modal on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeModal();
+        });
+    </script>
+</body>
+</html>
