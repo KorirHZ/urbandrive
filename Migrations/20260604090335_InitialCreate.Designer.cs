@@ -12,7 +12,7 @@ using UrbanDrive.Data;
 namespace UrbanDrive.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260602153812_InitialCreate")]
+    [Migration("20260604090335_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -250,6 +250,7 @@ namespace UrbanDrive.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("CostPerLiter")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("CurrentMileage")
@@ -262,15 +263,14 @@ namespace UrbanDrive.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("FuelCost")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("FuelLiters")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("IssuedBy")
-                        .HasColumnType("int");
-
-                    b.Property<int>("IssuerUserId")
+                    b.Property<int?>("IssuedBy")
                         .HasColumnType("int");
 
                     b.Property<string>("Notes")
@@ -279,6 +279,9 @@ namespace UrbanDrive.Migrations
                     b.Property<string>("ReceiptNumber")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
 
                     b.Property<int>("VehicleId")
                         .HasColumnType("int");
@@ -289,7 +292,7 @@ namespace UrbanDrive.Migrations
 
                     b.HasIndex("DriverId");
 
-                    b.HasIndex("IssuerUserId");
+                    b.HasIndex("UserId");
 
                     b.HasIndex("VehicleId");
 
@@ -305,6 +308,7 @@ namespace UrbanDrive.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TripReportId"));
 
                     b.Property<decimal?>("ActualFuelUsed")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("AdminNotes")
@@ -554,11 +558,9 @@ namespace UrbanDrive.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("UrbanDrive.Models.User", "Issuer")
+                    b.HasOne("UrbanDrive.Models.User", null)
                         .WithMany("FuelRecordsIssued")
-                        .HasForeignKey("IssuerUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("UserId");
 
                     b.HasOne("UrbanDrive.Models.Vehicle", "Vehicle")
                         .WithMany("FuelRecords")
@@ -569,8 +571,6 @@ namespace UrbanDrive.Migrations
                     b.Navigation("Allocation");
 
                     b.Navigation("Driver");
-
-                    b.Navigation("Issuer");
 
                     b.Navigation("Vehicle");
                 });

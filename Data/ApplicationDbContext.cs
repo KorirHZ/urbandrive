@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System.Reflection.Emit;
 using UrbanDrive.Models;
 
 namespace UrbanDrive.Data
@@ -23,6 +22,28 @@ namespace UrbanDrive.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            // ==================== DECIMAL PRECISION FIXES ====================
+
+            // Fix decimal precision for FuelRecord
+            modelBuilder.Entity<FuelRecord>(entity =>
+            {
+                entity.Property(e => e.FuelLiters)
+                    .HasPrecision(18, 2);
+                entity.Property(e => e.FuelCost)
+                    .HasPrecision(18, 2);
+                entity.Property(e => e.CostPerLiter)
+                    .HasPrecision(18, 2);
+            });
+
+            // Fix decimal precision for TripReport
+            modelBuilder.Entity<TripReport>(entity =>
+            {
+                entity.Property(e => e.ActualFuelUsed)
+                    .HasPrecision(18, 2);
+            });
+
+            // ==================== RELATIONSHIPS ====================
 
             // User - Booking relationship (one-to-many)
             modelBuilder.Entity<User>()
@@ -72,6 +93,8 @@ namespace UrbanDrive.Data
                 .WithOne(t => t.Allocation)
                 .HasForeignKey<TripReport>(t => t.AllocationId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // ==================== UNIQUE CONSTRAINTS ====================
 
             // Unique constraints
             modelBuilder.Entity<User>()

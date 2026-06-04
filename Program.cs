@@ -60,31 +60,31 @@ app.UseAuthorization();     // Authorization last
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-//// Seed Admin Account
-//using (var scope = app.Services.CreateScope())
-//{
-//    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-//    var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
+// Seed Admin Account
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
 
-//    // Check if admin exists
-//    if (!await context.Users.AnyAsync(u => u.Role == "Admin"))
-//    {
-//        var adminUser = new User
-//        {
-//            FullName = "System Administrator",
-//            Email = "admin@urbandrive.com",
-//            PhoneNumber = "0712345678",
-//            Role = "Admin",
-//            IsActive = true,
-//            IsEmailVerified = true,
-//            RegisteredAt = DateTime.Now,
-//            MustChangePassword = false
-//        };
+    // Check if admin exists
+    if (!await context.Users.AnyAsync(u => u.Role == "Admin"))
+    {
+        var adminUser = new User
+        {
+            FullName = "System Administrator",
+            Email = "admin@urbandrive.com",
+            PhoneNumber = "0712345678",
+            Role = "Admin",
+            IsActive = true,
+            IsEmailVerified = true,
+            RegisteredAt = DateTime.Now,
+            MustChangePassword = false
+        };
 
-//        // Use your password HOOD@123
-//        await userService.RegisterUserAsync(adminUser, "HOOD@123");
-//        Console.WriteLine("✅ Admin account created: admin@urbandrive.com / HOOD@123");
-//    }
-//}
+        // Use your password HOOD@123
+        await userService.RegisterUserAsync(adminUser, "HOOD@123");
+        Console.WriteLine("✅ Admin account created: admin@urbandrive.com / HOOD@123");
+    }
+}
 
 app.Run();

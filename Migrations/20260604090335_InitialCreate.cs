@@ -195,15 +195,15 @@ namespace UrbanDrive.Migrations
                     VehicleId = table.Column<int>(type: "int", nullable: false),
                     DriverId = table.Column<int>(type: "int", nullable: false),
                     AllocationId = table.Column<int>(type: "int", nullable: true),
-                    FuelLiters = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    FuelCost = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    CostPerLiter = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    FuelLiters = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    FuelCost = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    CostPerLiter = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     CurrentMileage = table.Column<int>(type: "int", nullable: false),
                     DateIssued = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    IssuedBy = table.Column<int>(type: "int", nullable: false),
+                    IssuedBy = table.Column<int>(type: "int", nullable: true),
                     ReceiptNumber = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    IssuerUserId = table.Column<int>(type: "int", nullable: false)
+                    UserId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -220,11 +220,10 @@ namespace UrbanDrive.Migrations
                         principalColumn: "DriverId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_FuelRecords_Users_IssuerUserId",
-                        column: x => x.IssuerUserId,
+                        name: "FK_FuelRecords_Users_UserId",
+                        column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "UserId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "UserId");
                     table.ForeignKey(
                         name: "FK_FuelRecords_Vehicles_VehicleId",
                         column: x => x.VehicleId,
@@ -243,7 +242,7 @@ namespace UrbanDrive.Migrations
                     StartMileage = table.Column<int>(type: "int", nullable: true),
                     EndMileage = table.Column<int>(type: "int", nullable: true),
                     TotalDistance = table.Column<int>(type: "int", nullable: true),
-                    ActualFuelUsed = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    ActualFuelUsed = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
                     StartTime = table.Column<DateTime>(type: "datetime2", nullable: true),
                     EndTime = table.Column<DateTime>(type: "datetime2", nullable: true),
                     ReportStatus = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
@@ -325,9 +324,9 @@ namespace UrbanDrive.Migrations
                 column: "DriverId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_FuelRecords_IssuerUserId",
+                name: "IX_FuelRecords_UserId",
                 table: "FuelRecords",
-                column: "IssuerUserId");
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_FuelRecords_VehicleId",

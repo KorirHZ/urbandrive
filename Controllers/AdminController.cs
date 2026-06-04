@@ -544,17 +544,15 @@ namespace UrbanDrive.Controllers
             return View(booking);
         }
 
+
+
         // ==================== FUEL RECORDS ====================
 
         // GET: Fuel Records Page (with filtering)
         public async Task<IActionResult> FuelRecords(DateTime? fromDate, DateTime? toDate, int? vehicleId)
         {
-            var query = _context.FuelRecords
-                .Include(f => f.Vehicle)
-                .Include(f => f.Driver)
-                    .ThenInclude(d => d.User)
-                //.Include(f => f.Issuer/*)*/
-                .AsQueryable();
+            // Start with base query - NO includes
+            var query = _context.FuelRecords.AsQueryable();
 
             // Apply date filters
             if (fromDate.HasValue)
@@ -569,6 +567,15 @@ namespace UrbanDrive.Controllers
 
             var fuelRecords = await query.OrderByDescending(f => f.DateIssued).ToListAsync();
 
+            // Manually load Vehicle for each record (to avoid the UserId error)
+            foreach (var record in fuelRecords)
+            {
+                if (record.VehicleId > 0)
+                {
+                    record.Vehicle = await _context.Vehicles.FindAsync(record.VehicleId);
+                }
+            }
+
             // Calculate totals for stats cards
             ViewBag.TotalLiters = fuelRecords.Sum(f => f.FuelLiters);
             ViewBag.TotalCost = fuelRecords.Sum(f => f.FuelCost);
@@ -582,40 +589,35 @@ namespace UrbanDrive.Controllers
 
             return View(fuelRecords);
         }
-
         // GET: Get Fuel Record Details (AJAX for modal)
         [HttpGet]
         public async Task<IActionResult> GetFuelRecord(int id)
         {
-            var record = await _context.FuelRecords
-                .Include(f => f.Vehicle)
-                .Include(f => f.Driver)
-                    .ThenInclude(d => d.User)
-                //.Include(f => f.Issuer)
-                .FirstOrDefaultAsync(f => f.FuelRecordId == id);
+            var record = await _context.FuelRecords.FindAsync(id);
 
             if (record == null)
                 return Json(new { success = false, message = "Record not found" });
+
+            // Manually load Vehicle
+            var vehicle = await _context.Vehicles.FindAsync(record.VehicleId);
 
             return Json(new
             {
                 success = true,
                 fuelRecordId = record.FuelRecordId,
                 dateIssued = record.DateIssued.ToString("MMM dd, yyyy HH:mm"),
-                vehicleReg = record.Vehicle?.RegistrationNumber ?? "N/A",
-                vehicleModel = record.Vehicle?.Model ?? "N/A",
-                driverName = record.Driver?.User?.FullName ?? "N/A",
+                vehicleReg = vehicle?.RegistrationNumber ?? "N/A",
+                vehicleModel = vehicle?.Model ?? "N/A",
+                driverId = record.DriverId,
                 fuelLiters = record.FuelLiters,
                 fuelCost = record.FuelCost,
                 costPerLiter = record.CostPerLiter.ToString("N2"),
                 currentMileage = record.CurrentMileage,
                 receiptNumber = record.ReceiptNumber ?? "N/A",
-                //issuedByName = record.Issuer?.FullName ?? "System",
                 notes = record.Notes ?? "No notes"
             });
         }
 
-        
 
         // ==================== TRIP REPORTS ====================
 

@@ -469,7 +469,7 @@
                         <tr>
                             <td>@record.DateIssued.ToString("MMM dd, yyyy")</td>
                             <td>@(record.Vehicle?.RegistrationNumber ?? "N/A")</td>
-                            <td>@(record.Driver?.User?.FullName ?? "N/A")</td>
+                            <td>@record.DriverId</td>
                             <td>@record.FuelLiters L</td>
                             <td>KES @record.FuelCost.ToString("N0")</td>
                             <td>@record.CurrentMileage km</td>
