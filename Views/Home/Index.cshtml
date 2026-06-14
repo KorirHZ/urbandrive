@@ -561,31 +561,33 @@
                 min-width: 200px;
             }
 
-                .footer-column h4 {
-                    color: var(--gold);
-                    margin-bottom: 15px;
-                }
+            .footer-column h4 {
+                color: var(--gold);
+                margin-bottom: 15px;
+            }
 
-                .footer-column a {
-                    color: var(--white);
-                    text-decoration: none;
-                    display: block;
-                    margin-bottom: 10px;
-                    transition: color 0.3s;
-                }
+            .footer-column a {
+                color: var(--white);
+                text-decoration: none;
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                margin-bottom: 10px;
+                transition: color 0.3s;
+            }
 
-                    .footer-column a:hover {
-                        color: var(--gold);
-                    }
+            .footer-column a:hover {
+                color: var(--gold);
+            }
 
             .social-links {
                 display: flex;
                 gap: 15px;
             }
 
-                .social-links a {
-                    font-size: 24px;
-                }
+            .social-links a {
+                font-size: 24px;
+            }
 
             .copyright {
                 text-align: center;
@@ -931,10 +933,19 @@
             </div>
             <div class="footer-column">
                 <h4>Contact Us</h4>
-                <p><i class="fas fa-envelope"></i> info@urbandrive.com</p>
-                <p><i class="fas fa-phone"></i> +254 700 000 000</p>
-                <p><i class="fas fa-map-marker-alt"></i> Nairobi, Kenya</p>
-                <p><i class="fas fa-clock"></i> 24/7 Customer Support</p>
+                <a href="mailto:info@urbandrive.com">
+                    <i class="fas fa-envelope"></i> info@urbandrive.com
+                </a>
+
+                <a href="tel:+254700000000">
+                    <i class="fas fa-phone"></i> +254 700 000 000
+                </a>
+
+                <a href="https://wa.me/254700000000" target="_blank">
+                    <i class="fa-brands fa-whatsapp"></i> +254 700 000 000
+                </a>
+                <a><i class="fas fa-map-marker-alt"></i> Nairobi, Kenya</a>
+                <a><i class="fas fa-clock"></i> 24/7 Customer Support</a>
             </div>
         </div>
         <div class="copyright">
