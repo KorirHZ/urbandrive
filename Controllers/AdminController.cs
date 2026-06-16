@@ -2,24 +2,110 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using UrbanDrive.Data;
 using UrbanDrive.Models;
 using UrbanDrive.Services;
 
 namespace UrbanDrive.Controllers
 {
-    [Authorize(Roles = "Admin")]
+
     public class AdminController : Controller
     {
         private readonly ApplicationDbContext _context;
         private readonly IEmailService _emailService;
         private readonly IUserService _userService;
+        private readonly IConfiguration _configuration;
 
-        public AdminController(ApplicationDbContext context, IEmailService emailService, IUserService userService)
+        public AdminController(ApplicationDbContext context, IEmailService emailService, IUserService userService, IConfiguration configuration)
         {
             _context = context;
             _emailService = emailService;
             _userService = userService;
+            _configuration = configuration;
+        }
+
+        // ==================== ADMIN ACCESS CONTROL ====================
+
+        // GET: Admin Access Page
+        public IActionResult Access()
+        {
+            // If admin is already authenticated via access code, redirect to dashboard
+            if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+            {
+                return RedirectToAction("Dashboard");
+            }
+
+            return View();
+        }
+
+        /// POST: Verify Admin Access Code
+        [HttpPost]
+        public async Task<IActionResult> Access(string accessCode)
+        {
+            if (string.IsNullOrEmpty(accessCode))
+            {
+                TempData["ErrorMessage"] = "Please enter the access code";
+                return View();
+            }
+
+            // Get the access code from configuration
+            var configuredCode = _configuration["AdminSettings:AccessCode"];
+
+            if (string.IsNullOrEmpty(configuredCode))
+            {
+                TempData["ErrorMessage"] = "Admin access is not configured. Please contact system administrator.";
+                return View();
+            }
+
+            // Verify the access code
+            if (accessCode == configuredCode)
+            {
+                // Create claims for admin
+                var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, "1"),
+            new Claim(ClaimTypes.Name, "System Administrator"),
+            new Claim(ClaimTypes.Email, "admin@urbandrive.com"),
+            new Claim(ClaimTypes.Role, "Admin")
+        };
+
+                // 🔴 FIXED: Use "CookieAuth" instead of CookieAuthenticationDefaults.AuthenticationScheme
+                var identity = new ClaimsIdentity(claims, "CookieAuth");
+                var principal = new ClaimsPrincipal(identity);
+
+                var authProperties = new AuthenticationProperties
+                {
+                    IsPersistent = true,
+                    ExpiresUtc = DateTimeOffset.UtcNow.AddHours(8)
+                };
+
+                // 🔴 FIXED: Use "CookieAuth" instead of CookieAuthenticationDefaults.AuthenticationScheme
+                await HttpContext.SignInAsync("CookieAuth", principal, authProperties);
+
+                TempData["SuccessMessage"] = "Access granted! Welcome to Admin Dashboard.";
+                return RedirectToAction("Dashboard");
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Invalid access code. Please try again.";
+                return View();
+            }
+        }
+        // GET: Admin Logout
+        public async Task<IActionResult> Logout()
+        {
+
+            await HttpContext.SignOutAsync("CookieAuth");
+            return RedirectToAction("Access");
+        }
+
+        // ==================== AUTHORIZATION HELPER ====================
+
+        private bool IsAdminAuthenticated()
+        {
+            return User.Identity.IsAuthenticated && User.IsInRole("Admin");
         }
 
         // ==================== DASHBOARD ====================
@@ -27,6 +113,11 @@ namespace UrbanDrive.Controllers
         // GET: Admin Dashboard
         public async Task<IActionResult> Dashboard()
         {
+            if (!IsAdminAuthenticated())
+            {
+                return RedirectToAction("Access");
+            }
+
             var viewModel = new AdminDashboardViewModel
             {
                 TotalVehicles = await _context.Vehicles.CountAsync(),
@@ -41,14 +132,22 @@ namespace UrbanDrive.Controllers
                 PendingApprovals = await _context.Bookings.Include(b => b.User).Where(b => b.Status == "Pending").OrderBy(b => b.StartDate).ToListAsync(),
                 RecentBookings = await _context.Bookings.Include(b => b.User).OrderByDescending(b => b.CreatedAt).Take(10).ToListAsync()
             };
+
+            // 🔴 FIX: Calculate Total Revenue from FuelRecords
+            var totalRevenue = await _context.FuelRecords.SumAsync(f => f.FuelCost);
+            ViewBag.TotalRevenue = totalRevenue;
             return View(viewModel);
         }
-
         // ==================== DRIVER MANAGEMENT ====================
 
         // GET: Driver Management Page
         public async Task<IActionResult> Drivers()
         {
+            if (!IsAdminAuthenticated())
+            {
+                return RedirectToAction("Access");
+            }
+
             var drivers = await _context.Drivers
                 .Include(d => d.User)
                 .Select(d => new DriverWithUser
@@ -82,6 +181,11 @@ namespace UrbanDrive.Controllers
         [HttpGet]
         public async Task<IActionResult> GetDriver(int driverId)
         {
+            if (!IsAdminAuthenticated())
+            {
+                return Json(new { success = false, message = "Unauthorized" });
+            }
+
             var driver = await _context.Drivers
                 .Include(d => d.User)
                 .FirstOrDefaultAsync(d => d.DriverId == driverId);
@@ -107,6 +211,11 @@ namespace UrbanDrive.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateDriver([FromBody] CreateDriverRequest request)
         {
+            if (!IsAdminAuthenticated())
+            {
+                return Json(new { success = false, message = "Unauthorized" });
+            }
+
             try
             {
                 // Check if email exists
@@ -176,6 +285,11 @@ namespace UrbanDrive.Controllers
         [HttpPost]
         public async Task<IActionResult> UpdateDriver([FromBody] UpdateDriverRequest request)
         {
+            if (!IsAdminAuthenticated())
+            {
+                return Json(new { success = false, message = "Unauthorized" });
+            }
+
             try
             {
                 var driver = await _context.Drivers
@@ -210,6 +324,11 @@ namespace UrbanDrive.Controllers
         [HttpPost]
         public async Task<IActionResult> DeleteDriver([FromBody] DeleteDriverRequest request)
         {
+            if (!IsAdminAuthenticated())
+            {
+                return Json(new { success = false, message = "Unauthorized" });
+            }
+
             try
             {
                 var driver = await _context.Drivers
@@ -242,6 +361,11 @@ namespace UrbanDrive.Controllers
         [HttpPost]
         public async Task<IActionResult> SetDriverPassword([FromBody] SetDriverPasswordRequest request)
         {
+            if (!IsAdminAuthenticated())
+            {
+                return Json(new { success = false, message = "Unauthorized" });
+            }
+
             try
             {
                 var driver = await _context.Drivers
@@ -276,18 +400,28 @@ namespace UrbanDrive.Controllers
             }
         }
 
-        // ==================== VEHICLE MANAGEMENT ====================
+
 
         // GET: Vehicle Management Page
         public async Task<IActionResult> Vehicles()
         {
+            if (!IsAdminAuthenticated())
+            {
+                return RedirectToAction("Access");
+            }
+
             var vehicles = await _context.Vehicles.OrderByDescending(v => v.CreatedAt).ToListAsync();
-            return View("Vehicles/Index", vehicles); 
+            return View("Vehicles/Index", vehicles);
         }
 
         // GET: Create Vehicle Form
         public IActionResult CreateVehicle()
         {
+            if (!IsAdminAuthenticated())
+            {
+                return RedirectToAction("Access");
+            }
+
             return View("Vehicles/Create");
         }
 
@@ -296,6 +430,11 @@ namespace UrbanDrive.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateVehicle(Vehicle vehicle)
         {
+            if (!IsAdminAuthenticated())
+            {
+                return RedirectToAction("Access");
+            }
+
             if (ModelState.IsValid)
             {
                 vehicle.CreatedAt = DateTime.Now;
@@ -310,6 +449,11 @@ namespace UrbanDrive.Controllers
         // GET: Edit Vehicle Form
         public async Task<IActionResult> EditVehicle(int id)
         {
+            if (!IsAdminAuthenticated())
+            {
+                return RedirectToAction("Access");
+            }
+
             var vehicle = await _context.Vehicles.FindAsync(id);
             if (vehicle == null)
                 return NotFound();
@@ -321,6 +465,11 @@ namespace UrbanDrive.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditVehicle(int id, Vehicle vehicle)
         {
+            if (!IsAdminAuthenticated())
+            {
+                return RedirectToAction("Access");
+            }
+
             if (id != vehicle.VehicleId)
                 return NotFound();
 
@@ -338,6 +487,11 @@ namespace UrbanDrive.Controllers
         // GET: Delete Vehicle Confirmation
         public async Task<IActionResult> DeleteVehicle(int id)
         {
+            if (!IsAdminAuthenticated())
+            {
+                return RedirectToAction("Access");
+            }
+
             var vehicle = await _context.Vehicles.FindAsync(id);
             if (vehicle == null)
                 return NotFound();
@@ -349,6 +503,11 @@ namespace UrbanDrive.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteVehicle(int id, string confirm)
         {
+            if (!IsAdminAuthenticated())
+            {
+                return RedirectToAction("Access");
+            }
+
             var vehicle = await _context.Vehicles.FindAsync(id);
             if (vehicle != null)
             {
@@ -372,6 +531,11 @@ namespace UrbanDrive.Controllers
         // GET: Vehicle Details
         public async Task<IActionResult> VehicleDetails(int id)
         {
+            if (!IsAdminAuthenticated())
+            {
+                return RedirectToAction("Access");
+            }
+
             var vehicle = await _context.Vehicles
                 .Include(v => v.Allocations)
                     .ThenInclude(a => a.Booking)
@@ -382,10 +546,16 @@ namespace UrbanDrive.Controllers
                 return NotFound();
             return View("Vehicles/Details", vehicle);
         }
+
         // GET: Vehicle Details (AJAX)
         [HttpGet]
         public async Task<IActionResult> GetVehicleDetails(int id)
         {
+            if (!IsAdminAuthenticated())
+            {
+                return Json(new { success = false, message = "Unauthorized" });
+            }
+
             var vehicle = await _context.Vehicles.FindAsync(id);
             if (vehicle == null)
                 return Json(new { success = false });
@@ -411,6 +581,11 @@ namespace UrbanDrive.Controllers
         // GET: User Management Page
         public async Task<IActionResult> Users()
         {
+            if (!IsAdminAuthenticated())
+            {
+                return RedirectToAction("Access");
+            }
+
             var users = await _context.Users
                 .Where(u => u.Role == "User")
                 .OrderByDescending(u => u.RegisteredAt)
@@ -421,6 +596,11 @@ namespace UrbanDrive.Controllers
         // GET: User Details
         public async Task<IActionResult> UserDetails(int id)
         {
+            if (!IsAdminAuthenticated())
+            {
+                return RedirectToAction("Access");
+            }
+
             var user = await _context.Users
                 .Include(u => u.Bookings)
                 .FirstOrDefaultAsync(u => u.UserId == id);
@@ -434,6 +614,11 @@ namespace UrbanDrive.Controllers
         [HttpPost]
         public async Task<IActionResult> DeactivateUser(int userId)
         {
+            if (!IsAdminAuthenticated())
+            {
+                return Json(new { success = false, message = "Unauthorized" });
+            }
+
             var user = await _context.Users.FindAsync(userId);
             if (user == null)
                 return Json(new { success = false, message = "User not found" });
@@ -447,6 +632,11 @@ namespace UrbanDrive.Controllers
         [HttpPost]
         public async Task<IActionResult> ResetUserPassword(int userId)
         {
+            if (!IsAdminAuthenticated())
+            {
+                return Json(new { success = false, message = "Unauthorized" });
+            }
+
             var user = await _context.Users.FindAsync(userId);
             if (user == null)
                 return Json(new { success = false, message = "User not found" });
@@ -467,12 +657,16 @@ namespace UrbanDrive.Controllers
 
             return Json(new { success = true, message = "Password reset email sent" });
         }
-        
 
         // GET: Get User Details (AJAX for modal popup) - NEW
         [HttpGet]
         public async Task<IActionResult> GetUserDetails(int userId)
         {
+            if (!IsAdminAuthenticated())
+            {
+                return Json(new { success = false, message = "Unauthorized" });
+            }
+
             var user = await _context.Users.FindAsync(userId);
             if (user == null)
                 return Json(new { success = false, message = "User not found" });
@@ -498,6 +692,11 @@ namespace UrbanDrive.Controllers
         [HttpPost]
         public async Task<IActionResult> ToggleUserStatus([FromBody] ToggleUserStatusRequest request)
         {
+            if (!IsAdminAuthenticated())
+            {
+                return Json(new { success = false, message = "Unauthorized" });
+            }
+
             try
             {
                 var user = await _context.Users.FindAsync(request.UserId);
@@ -520,6 +719,11 @@ namespace UrbanDrive.Controllers
         // GET: All Bookings Page
         public async Task<IActionResult> Bookings()
         {
+            if (!IsAdminAuthenticated())
+            {
+                return RedirectToAction("Access");
+            }
+
             var bookings = await _context.Bookings
                 .Include(b => b.User)
                 .OrderByDescending(b => b.CreatedAt)
@@ -527,9 +731,14 @@ namespace UrbanDrive.Controllers
             return View(bookings);
         }
 
-        // GET: Booking Details
+        // GET: Booking Details (Full Page View)
         public async Task<IActionResult> BookingDetails(int bookingId)
         {
+            if (!IsAdminAuthenticated())
+            {
+                return RedirectToAction("Access");
+            }
+
             var booking = await _context.Bookings
                 .Include(b => b.User)
                 .Include(b => b.Allocation)
@@ -544,30 +753,78 @@ namespace UrbanDrive.Controllers
             return View(booking);
         }
 
+        // GET: Get Booking Details (AJAX for modal)
+        [HttpGet]
+        public async Task<IActionResult> GetBookingDetails(int bookingId)
+        {
+            if (!IsAdminAuthenticated())
+            {
+                return Json(new { success = false, message = "Unauthorized" });
+            }
 
+            var booking = await _context.Bookings
+                .Include(b => b.User)
+                .Include(b => b.Allocation)
+                    .ThenInclude(a => a.Vehicle)
+                .Include(b => b.Allocation)
+                    .ThenInclude(a => a.Driver)
+                        .ThenInclude(d => d.User)
+                .FirstOrDefaultAsync(b => b.BookingId == bookingId);
+
+            if (booking == null)
+                return Json(new { success = false, message = "Booking not found" });
+
+            return Json(new
+            {
+                success = true,
+                booking = new
+                {
+                    bookingId = booking.BookingId,
+                    requesterName = booking.User?.FullName,
+                    destination = booking.Destination,
+                    startDate = booking.StartDate.ToString("MMM dd, yyyy 'at' hh:mm tt"),
+                    endDate = booking.EndDate?.ToString("MMM dd, yyyy 'at' hh:mm tt") ?? "Not specified",
+                    purpose = booking.Purpose,
+                    passengers = booking.NumberOfPassengers,
+                    specialRequests = booking.SpecialRequests ?? "None",
+                    status = booking.Status,
+                    rejectionReason = booking.RejectionReason,
+                    driverName = booking.Allocation?.Driver?.User?.FullName,
+                    driverPhone = booking.Allocation?.Driver?.PhoneNumber,
+                    driverEmail = booking.Allocation?.Driver?.Email,
+                    vehicleModel = booking.Allocation?.Vehicle?.Model,
+                    vehicleReg = booking.Allocation?.Vehicle?.RegistrationNumber,
+                    allocationStatus = booking.Allocation?.AllocationStatus,
+                    notesForPassenger = booking.Allocation?.NotesForPassenger,
+                    notesForDriver = booking.Allocation?.NotesForDriver,
+                    approvalDate = booking.Allocation?.ApprovalDate.ToString("MMM dd, yyyy 'at' hh:mm tt")
+                }
+            });
+        }
 
         // ==================== FUEL RECORDS ====================
 
         // GET: Fuel Records Page (with filtering)
         public async Task<IActionResult> FuelRecords(DateTime? fromDate, DateTime? toDate, int? vehicleId)
         {
-            // Start with base query - NO includes
+            if (!IsAdminAuthenticated())
+            {
+                return RedirectToAction("Access");
+            }
+
             var query = _context.FuelRecords.AsQueryable();
 
-            // Apply date filters
             if (fromDate.HasValue)
                 query = query.Where(f => f.DateIssued >= fromDate.Value);
 
             if (toDate.HasValue)
                 query = query.Where(f => f.DateIssued <= toDate.Value);
 
-            // Apply vehicle filter
             if (vehicleId.HasValue && vehicleId.Value > 0)
                 query = query.Where(f => f.VehicleId == vehicleId.Value);
 
             var fuelRecords = await query.OrderByDescending(f => f.DateIssued).ToListAsync();
 
-            // Manually load Vehicle for each record (to avoid the UserId error)
             foreach (var record in fuelRecords)
             {
                 if (record.VehicleId > 0)
@@ -576,29 +833,32 @@ namespace UrbanDrive.Controllers
                 }
             }
 
-            // Calculate totals for stats cards
             ViewBag.TotalLiters = fuelRecords.Sum(f => f.FuelLiters);
             ViewBag.TotalCost = fuelRecords.Sum(f => f.FuelCost);
             ViewBag.FromDate = fromDate?.ToString("yyyy-MM-dd");
             ViewBag.ToDate = toDate?.ToString("yyyy-MM-dd");
 
-            // Get vehicles for filter dropdown
             ViewBag.Vehicles = await _context.Vehicles
                 .Select(v => new { v.VehicleId, v.RegistrationNumber, v.Model })
                 .ToListAsync();
 
             return View(fuelRecords);
         }
+
         // GET: Get Fuel Record Details (AJAX for modal)
         [HttpGet]
         public async Task<IActionResult> GetFuelRecord(int id)
         {
+            if (!IsAdminAuthenticated())
+            {
+                return Json(new { success = false, message = "Unauthorized" });
+            }
+
             var record = await _context.FuelRecords.FindAsync(id);
 
             if (record == null)
                 return Json(new { success = false, message = "Record not found" });
 
-            // Manually load Vehicle
             var vehicle = await _context.Vehicles.FindAsync(record.VehicleId);
 
             return Json(new
@@ -618,12 +878,16 @@ namespace UrbanDrive.Controllers
             });
         }
 
-
         // ==================== TRIP REPORTS ====================
 
         // GET: Trip Reports Page (with filtering)
         public async Task<IActionResult> TripReports(DateTime? fromDate, DateTime? toDate, int? driverId, int? vehicleId)
         {
+            if (!IsAdminAuthenticated())
+            {
+                return RedirectToAction("Access");
+            }
+
             var query = _context.TripReports
                 .Include(t => t.Allocation)
                     .ThenInclude(a => a.Booking)
@@ -636,24 +900,20 @@ namespace UrbanDrive.Controllers
                 .Where(t => t.ReportStatus == "Completed")
                 .AsQueryable();
 
-            // Apply date filters
             if (fromDate.HasValue)
                 query = query.Where(t => t.EndTime >= fromDate.Value);
 
             if (toDate.HasValue)
                 query = query.Where(t => t.EndTime <= toDate.Value);
 
-            // Apply driver filter
             if (driverId.HasValue && driverId.Value > 0)
                 query = query.Where(t => t.Allocation.DriverId == driverId.Value);
 
-            // Apply vehicle filter
             if (vehicleId.HasValue && vehicleId.Value > 0)
                 query = query.Where(t => t.Allocation.VehicleId == vehicleId.Value);
 
             var tripReports = await query.OrderByDescending(t => t.EndTime).ToListAsync();
 
-            // Calculate totals
             var totalDistance = tripReports.Sum(t => t.TotalDistance ?? 0);
             var totalFuel = tripReports.Sum(t => t.ActualFuelUsed ?? 0);
             var avgEfficiency = totalDistance > 0 ? (totalFuel / totalDistance * 100) : 0;
@@ -664,23 +924,27 @@ namespace UrbanDrive.Controllers
             ViewBag.FromDate = fromDate?.ToString("yyyy-MM-dd");
             ViewBag.ToDate = toDate?.ToString("yyyy-MM-dd");
 
-            // Get drivers for filter dropdown
             ViewBag.Drivers = await _context.Drivers
                 .Include(d => d.User)
                 .Select(d => new { d.DriverId, Name = d.User.FullName })
                 .ToListAsync();
 
-            // Get vehicles for filter dropdown
             ViewBag.Vehicles = await _context.Vehicles
                 .Select(v => new { v.VehicleId, v.RegistrationNumber, v.Model })
                 .ToListAsync();
 
             return View(tripReports);
         }
+
         // GET: Get Trip Report Details (AJAX for modal)
         [HttpGet]
         public async Task<IActionResult> GetTripReport(int id)
         {
+            if (!IsAdminAuthenticated())
+            {
+                return Json(new { success = false, message = "Unauthorized" });
+            }
+
             var trip = await _context.TripReports
                 .Include(t => t.Allocation)
                     .ThenInclude(a => a.Booking)
@@ -727,6 +991,11 @@ namespace UrbanDrive.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAvailableVehicles()
         {
+            if (!IsAdminAuthenticated())
+            {
+                return Json(new { success = false, message = "Unauthorized" });
+            }
+
             var vehicles = await _context.Vehicles
                 .Where(v => v.Status == "Available")
                 .Select(v => new { v.VehicleId, v.Model, v.RegistrationNumber })
@@ -738,6 +1007,11 @@ namespace UrbanDrive.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAvailableDrivers()
         {
+            if (!IsAdminAuthenticated())
+            {
+                return Json(new { success = false, message = "Unauthorized" });
+            }
+
             var drivers = await _context.Drivers
                 .Include(d => d.User)
                 .Where(d => d.IsAvailable)
@@ -750,6 +1024,11 @@ namespace UrbanDrive.Controllers
         [HttpPost]
         public async Task<IActionResult> AllocateBooking([FromBody] AllocationRequest request)
         {
+            if (!IsAdminAuthenticated())
+            {
+                return Json(new { success = false, message = "Unauthorized" });
+            }
+
             try
             {
                 var booking = await _context.Bookings.Include(b => b.User).FirstOrDefaultAsync(b => b.BookingId == request.BookingId);
@@ -780,7 +1059,6 @@ namespace UrbanDrive.Controllers
                 driver.IsAvailable = false;
                 await _context.SaveChangesAsync();
 
-                // Send email to Passenger
                 var passengerTrackingLink = Url.Action("MyBookings", "User", null, Request.Scheme);
                 var passengerPlaceholders = new Dictionary<string, string>
                 {
@@ -793,7 +1071,6 @@ namespace UrbanDrive.Controllers
                 };
                 await _emailService.SendEmailWithTemplateAsync(booking.User.Email, booking.User.FullName, "BookingConfirmation", passengerPlaceholders);
 
-                // Send email to Driver
                 var driverDashboardLink = Url.Action("Dashboard", "Driver", null, Request.Scheme);
                 var driverPlaceholders = new Dictionary<string, string>
                 {
@@ -819,6 +1096,11 @@ namespace UrbanDrive.Controllers
         [HttpPost]
         public async Task<IActionResult> RejectBooking([FromBody] RejectRequest request)
         {
+            if (!IsAdminAuthenticated())
+            {
+                return Json(new { success = false, message = "Unauthorized" });
+            }
+
             var booking = await _context.Bookings.FindAsync(request.BookingId);
             if (booking == null || booking.Status != "Pending")
                 return Json(new { success = false, message = "Booking not found" });
@@ -827,61 +1109,135 @@ namespace UrbanDrive.Controllers
             await _context.SaveChangesAsync();
             return Json(new { success = true });
         }
-    }
 
-    // ==================== REQUEST CLASSES ====================
+        // ==================== FUEL PRICE MANAGEMENT ====================
 
-    public class AllocationRequest
-    {
-        public int BookingId { get; set; }
-        public int VehicleId { get; set; }
-        public int DriverId { get; set; }
-        public string NotesForDriver { get; set; }
-        public string NotesForPassenger { get; set; }
-    }
+        // GET: Fuel Price Settings Page
+        public async Task<IActionResult> FuelPriceSettings()
+        {
+            if (!IsAdminAuthenticated())
+            {
+                return RedirectToAction("Access");
+            }
 
-    public class RejectRequest
-    {
-        public int BookingId { get; set; }
-    }
+            var fuelPrice = await _context.FuelPrices.FirstOrDefaultAsync();
+            ViewBag.CurrentPrice = fuelPrice?.PricePerLiter ?? 200;
 
-    public class CreateDriverRequest
-    {
-        public string FullName { get; set; }
-        public string Email { get; set; }
-        public string PhoneNumber { get; set; }
-        public string LicenseNumber { get; set; }
-        public DateTime? LicenseExpiryDate { get; set; }
-        public DateTime? HireDate { get; set; }
-        public bool IsAvailable { get; set; }
-        public string Notes { get; set; }
-    }
+            return View();
+        }
 
-    public class UpdateDriverRequest
-    {
-        public int DriverId { get; set; }
-        public string FullName { get; set; }
-        public string Email { get; set; }
-        public string PhoneNumber { get; set; }
-        public string LicenseNumber { get; set; }
-        public DateTime? LicenseExpiryDate { get; set; }
-        public DateTime? HireDate { get; set; }
-        public bool IsAvailable { get; set; }
-        public string Notes { get; set; }
-    }
+        // POST: Update Fuel Price
+        [HttpPost]
+        public async Task<IActionResult> UpdateFuelPrice(decimal pricePerLiter)
+        {
+            if (!IsAdminAuthenticated())
+            {
+                return RedirectToAction("Access");
+            }
 
-    public class DeleteDriverRequest
-    {
-        public int DriverId { get; set; }
-    }
+            try
+            {
+                if (pricePerLiter <= 0)
+                {
+                    TempData["ErrorMessage"] = "Price must be greater than zero";
+                    return RedirectToAction("FuelPriceSettings");
+                }
 
-    public class SetDriverPasswordRequest
-    {
-        public int DriverId { get; set; }
-        public string NewPassword { get; set; }
-    }
-    public class ToggleUserStatusRequest
-    {
-        public int UserId { get; set; }
+                var adminId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                var fuelPrice = await _context.FuelPrices.FirstOrDefaultAsync();
+
+                if (fuelPrice == null)
+                {
+                    fuelPrice = new FuelPriceSettings
+                    {
+                        PricePerLiter = pricePerLiter,
+                        UpdatedAt = DateTime.Now,
+                        UpdatedBy = adminId
+                    };
+                    _context.FuelPrices.Add(fuelPrice);
+                }
+                else
+                {
+                    fuelPrice.PricePerLiter = pricePerLiter;
+                    fuelPrice.UpdatedAt = DateTime.Now;
+                    fuelPrice.UpdatedBy = adminId;
+                }
+
+                await _context.SaveChangesAsync();
+
+                // Update all existing fuel records with new price
+                var fuelRecords = await _context.FuelRecords.ToListAsync();
+                foreach (var record in fuelRecords)
+                {
+                    record.CostPerLiter = pricePerLiter;
+                    record.FuelCost = record.FuelLiters * pricePerLiter;
+                }
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = $"Fuel price updated to KES {pricePerLiter} per liter. All existing records updated.";
+                return RedirectToAction("FuelRecords");
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Error: {ex.Message}";
+                return RedirectToAction("FuelPriceSettings");
+            }
+        }
+
+        // ==================== REQUEST CLASSES ====================
+
+        public class AllocationRequest
+        {
+            public int BookingId { get; set; }
+            public int VehicleId { get; set; }
+            public int DriverId { get; set; }
+            public string NotesForDriver { get; set; }
+            public string NotesForPassenger { get; set; }
+        }
+
+        public class RejectRequest
+        {
+            public int BookingId { get; set; }
+        }
+
+        public class CreateDriverRequest
+        {
+            public string FullName { get; set; }
+            public string Email { get; set; }
+            public string PhoneNumber { get; set; }
+            public string LicenseNumber { get; set; }
+            public DateTime? LicenseExpiryDate { get; set; }
+            public DateTime? HireDate { get; set; }
+            public bool IsAvailable { get; set; }
+            public string Notes { get; set; }
+        }
+
+        public class UpdateDriverRequest
+        {
+            public int DriverId { get; set; }
+            public string FullName { get; set; }
+            public string Email { get; set; }
+            public string PhoneNumber { get; set; }
+            public string LicenseNumber { get; set; }
+            public DateTime? LicenseExpiryDate { get; set; }
+            public DateTime? HireDate { get; set; }
+            public bool IsAvailable { get; set; }
+            public string Notes { get; set; }
+        }
+
+        public class DeleteDriverRequest
+        {
+            public int DriverId { get; set; }
+        }
+
+        public class SetDriverPasswordRequest
+        {
+            public int DriverId { get; set; }
+            public string NewPassword { get; set; }
+        }
+        public class ToggleUserStatusRequest
+        {
+            public int UserId { get; set; }
+        }
     }
 }

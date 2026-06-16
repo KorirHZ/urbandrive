@@ -148,9 +148,7 @@ namespace UrbanDrive.Controllers
             }
         }
 
-        // ==================== COMPLETE TRIP ====================
-
-        // POST: Complete Trip (WITHOUT foreign key issues)
+        // POST: Complete Trip
         [HttpPost]
         public async Task<IActionResult> CompleteTrip([FromBody] CompleteTripRequest request)
         {
@@ -206,28 +204,33 @@ namespace UrbanDrive.Controllers
                 if (vehicle != null)
                 {
                     vehicle.CurrentMileage = request.EndMileage;
-                    vehicle.UpdatedAt = DateTime.Now;
                 }
 
                 var booking = await _context.Bookings.FindAsync(allocation.BookingId);
                 if (booking != null)
                 {
                     booking.Status = "Completed";
-                    booking.UpdatedAt = DateTime.Now;
                 }
 
-                // ✅ Create Fuel Record - NO FOREIGN KEY CONSTRAINT
+                // ✅ GET FUEL PRICE FROM DATABASE
+                var fuelPriceSetting = await _context.FuelPrices.FirstOrDefaultAsync();
+                var fuelPricePerLiter = fuelPriceSetting?.PricePerLiter ?? 187;
+
+                // ✅ CALCULATE FUEL COST
+                var fuelCost = request.ActualFuelUsed * fuelPricePerLiter;
+
+                // ✅ CREATE FUEL RECORD WITH COST
                 var fuelRecord = new FuelRecord
                 {
                     VehicleId = allocation.VehicleId,
                     DriverId = driver.DriverId,
                     AllocationId = request.AllocationId,
                     FuelLiters = request.ActualFuelUsed,
-                    FuelCost = 0,
-                    CostPerLiter = 0,
+                    FuelCost = fuelCost,           // ← This is the revenue
+                    CostPerLiter = fuelPricePerLiter,
                     CurrentMileage = request.EndMileage,
                     DateIssued = DateTime.Now,
-                    IssuedBy = null,  
+                    IssuedBy = null,
                     ReceiptNumber = null,
                     Notes = $"Auto-generated from trip #{allocation.BookingId} completion"
                 };
@@ -235,7 +238,7 @@ namespace UrbanDrive.Controllers
 
                 await _context.SaveChangesAsync();
 
-                return Json(new { success = true, totalDistance = totalDistance, fuelUsed = request.ActualFuelUsed });
+                return Json(new { success = true, totalDistance = totalDistance, fuelUsed = request.ActualFuelUsed, fuelCost = fuelCost });
             }
             catch (Exception ex)
             {

@@ -1,16 +1,16 @@
 ﻿@{
-    ViewData["Title"] = "Fuel Records - UrbanDrive";
+    ViewData["Title"] = "Bookings - UrbanDrive";
     Layout = null;
 }
 
-@model List<UrbanDrive.Models.FuelRecord>
+@model List<UrbanDrive.Models.Booking>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>UrbanDrive Executive - Fuel Records</title>
+    <title>UrbanDrive Executive - Bookings</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
             * {
@@ -31,11 +31,11 @@
                 --sidebar-width: 250px;
                 --gold: #DAA520;
                 --dark: #1a1a2e;
-                --cream: #f5f0eb;
                 --white: #ffffff;
                 --success: #27ae60;
                 --danger: #e74c3c;
-                --info: #3498db;
+                --pending: #f39c12;
+                --completed: #3498db;
             }
 
             /* ==================== SIDEBAR ==================== */
@@ -263,75 +263,6 @@
                 background: linear-gradient(135deg, #8E2DE2, #4A00E0);
             }
 
-            /* ==================== FILTER ==================== */
-            .filter-card {
-                background: var(--white);
-                padding: 20px;
-                border-radius: 12px;
-                margin-bottom: 25px;
-                box-shadow: 0 2px 15px rgba(0,0,0,0.06);
-            }
-
-            .filter-form {
-                display: flex;
-                gap: 15px;
-                flex-wrap: wrap;
-                align-items: flex-end;
-            }
-
-            .filter-group {
-                flex: 1;
-                min-width: 150px;
-            }
-
-                .filter-group label {
-                    display: block;
-                    margin-bottom: 5px;
-                    font-weight: bold;
-                    font-size: 12px;
-                    color: #333;
-                }
-
-                .filter-group input, .filter-group select {
-                    width: 100%;
-                    padding: 8px 10px;
-                    border: 1px solid #ddd;
-                    border-radius: 8px;
-                    font-size: 14px;
-                }
-
-            .btn-filter {
-                background: var(--gold);
-                color: var(--dark);
-                border: none;
-                padding: 8px 20px;
-                border-radius: 8px;
-                cursor: pointer;
-                font-weight: bold;
-                transition: all 0.3s;
-            }
-
-                .btn-filter:hover {
-                    background: #e6b800;
-                    transform: translateY(-1px);
-                }
-
-            .btn-reset {
-                background: #666;
-                color: white;
-                border: none;
-                padding: 8px 20px;
-                border-radius: 8px;
-                cursor: pointer;
-                text-decoration: none;
-                display: inline-block;
-                transition: all 0.3s;
-            }
-
-                .btn-reset:hover {
-                    background: #555;
-                }
-
             /* ==================== TABLE ==================== */
             .table-container {
                 background: var(--white);
@@ -344,7 +275,7 @@
             table {
                 width: 100%;
                 border-collapse: collapse;
-                min-width: 800px;
+                min-width: 750px;
             }
 
             th {
@@ -367,14 +298,48 @@
                 background: #faf7f4;
             }
 
+            .status-badge {
+                display: inline-block;
+                padding: 4px 12px;
+                border-radius: 20px;
+                font-size: 11px;
+                font-weight: bold;
+            }
+
+            .status-pending {
+                background: var(--pending);
+                color: white;
+            }
+
+            .status-approved {
+                background: var(--success);
+                color: white;
+            }
+
+            .status-completed {
+                background: var(--completed);
+                color: white;
+            }
+
+            .status-cancelled {
+                background: var(--danger);
+                color: white;
+            }
+
+            .status-rejected {
+                background: var(--danger);
+                color: white;
+            }
+
             .btn-view {
-                background: var(--gold);
-                color: var(--dark);
-                border: none;
                 padding: 5px 14px;
                 border-radius: 5px;
+                border: none;
                 cursor: pointer;
+                font-size: 11px;
                 font-weight: bold;
+                background: var(--gold);
+                color: var(--dark);
                 transition: all 0.3s;
             }
 
@@ -383,7 +348,259 @@
                     opacity: 0.85;
                 }
 
-            /* ==================== MODAL ==================== */
+            /* ==================== MOBILE ==================== */
+            @@media (max-width: 1024px) {
+                .stats-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+            }
+
+            @@media (max-width: 768px) {
+                .sidebar-toggle {
+                    display: block;
+                }
+
+                .sidebar {
+                    left: -280px;
+                    width: 280px;
+                }
+
+                    .sidebar.open {
+                        left: 0;
+                    }
+
+                .main-content {
+                    margin-left: 0;
+                    padding: 70px 15px 20px;
+                }
+
+                .stats-grid {
+                    grid-template-columns: 1fr 1fr;
+                    gap: 15px;
+                }
+
+                .stat-card .stat-number {
+                    font-size: 24px;
+                }
+
+                .page-header h2 {
+                    font-size: 22px;
+                }
+
+                .sidebar-overlay.show {
+                    display: block;
+                }
+            }
+
+            @@media (max-width: 480px) {
+                .stats-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+    </style>
+</head>
+<body>
+
+    <!-- Mobile Toggle -->
+    <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <!-- ==================== SIDEBAR ==================== -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <h1>URBANDRIVE</h1>
+            <p>EXECUTIVE</p>
+        </div>
+
+        <div class="sidebar-divider"></div>
+
+        <nav class="sidebar-nav">
+            <a href="/Admin/Dashboard" class="sidebar-link">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="/Admin/Vehicles" class="sidebar-link">
+                <i class="fas fa-car"></i>
+                <span>Vehicles</span>
+            </a>
+            <a href="/Admin/Drivers" class="sidebar-link">
+                <i class="fas fa-users"></i>
+                <span>Drivers</span>
+            </a>
+            <a href="/Admin/Users/Index" class="sidebar-link">
+                <i class="fas fa-user-friends"></i>
+                <span>Users</span>
+            </a>
+            <a href="/Admin/Bookings" class="sidebar-link active">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Bookings</span>
+            </a>
+            <a href="/Admin/FuelRecords" class="sidebar-link">
+                <i class="fas fa-gas-pump"></i>
+                <span>Fuel Records</span>
+            </a>
+            <a href="/Admin/FuelPriceSettings" class="sidebar-link">
+                <i class="fas fa-sliders-h"></i>
+                <span>Fuel Price</span>
+            </a>
+            <a href="/Admin/TripReports" class="sidebar-link">
+                <i class="fas fa-file-alt"></i>
+                <span>Trip Reports</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-divider"></div>
+
+        <div class="sidebar-footer">
+            <a href="/Admin/Logout" class="sidebar-link">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+            <div class="sidebar-user">
+                <i class="fas fa-user-circle"></i>
+                <span>@User.Identity?.Name ?? "Admin"</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MAIN CONTENT ==================== -->
+    <div class="main-content">
+        <div class="page-header">
+            <h2><i class="fas fa-calendar-alt" style="color: var(--gold); margin-right: 10px;"></i> All Bookings</h2>
+            <p>View and manage all vehicle booking requests</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card card-blue">
+                <i class="fas fa-calendar-alt stat-icon"></i>
+                <div class="stat-label">Total Bookings</div>
+                <div class="stat-number">@Model.Count</div>
+                <div class="stat-change positive">
+                    <i class="fas fa-arrow-up"></i> All bookings
+                </div>
+            </div>
+
+            <div class="stat-card card-orange">
+                <i class="fas fa-clock stat-icon"></i>
+                <div class="stat-label">Pending</div>
+                @{
+                    var pendingCount = Model.Count(b => b.Status == "Pending");
+                }
+                <div class="stat-number">@pendingCount</div>
+                <div class="stat-change @(pendingCount > 0 ? "negative" : "positive")">
+                    @if (pendingCount > 0)
+                    {
+                        <span><i class="fas fa-arrow-up"></i> Awaiting approval</span>
+                    }
+                    else
+                    {
+                        <span><i class="fas fa-check"></i> All approved</span>
+                    }
+                </div>
+            </div>
+
+            <div class="stat-card card-green">
+                <i class="fas fa-check-circle stat-icon"></i>
+                <div class="stat-label">Approved</div>
+                <div class="stat-number">@Model.Count(b => b.Status == "Approved")</div>
+                <div class="stat-change positive">
+                    <i class="fas fa-check"></i> Approved bookings
+                </div>
+            </div>
+
+            <div class="stat-card card-purple">
+                <i class="fas fa-check-double stat-icon"></i>
+                <div class="stat-label">Completed</div>
+                <div class="stat-number">@Model.Count(b => b.Status == "Completed")</div>
+                <div class="stat-change positive">
+                    <i class="fas fa-arrow-up"></i> Completed trips
+                </div>
+            </div>
+        </div>
+
+        <!-- Bookings Table -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Requester</th>
+                        <th>Destination</th>
+                        <th>Pickup Date</th>
+                        <th>Purpose</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var booking in Model)
+                    {
+                        <tr>
+                            <td><strong>#BK@(booking.BookingId)</strong></td>
+                            <td>@booking.User?.FullName</td>
+                            <td>@booking.Destination</td>
+                            <td>@booking.StartDate.ToString("MMM dd, yyyy 'at' hh:mm tt")</td>
+                            <td>@(booking.Purpose.Length > 30 ? booking.Purpose.Substring(0, 30) + "..." : booking.Purpose)</td>
+                            <td>
+                                @if (booking.Status == "Pending")
+                                {
+                                    <span class="status-badge status-pending"><i class="fas fa-clock"></i> Pending</span>
+                                }
+                                else if (booking.Status == "Approved")
+                                {
+                                    <span class="status-badge status-approved"><i class="fas fa-check-circle"></i> Approved</span>
+                                }
+                                else if (booking.Status == "Completed")
+                                {
+                                    <span class="status-badge status-completed"><i class="fas fa-check-double"></i> Completed</span>
+                                }
+                                else if (booking.Status == "Cancelled")
+                                {
+                                    <span class="status-badge status-cancelled"><i class="fas fa-ban"></i> Cancelled</span>
+                                }
+                                else if (booking.Status == "Rejected")
+                                {
+                                    <span class="status-badge status-cancelled"><i class="fas fa-times-circle"></i> Rejected</span>
+                                }
+                            </td>
+                            <td>
+                                <button class="btn-view" onclick="viewBooking(@booking.BookingId)">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="7" style="text-align:center; padding: 30px; color: #999;">
+                                <i class="fas fa-calendar-alt" style="font-size: 24px; display: block; margin-bottom: 10px; color: var(--gold);"></i>
+                                No bookings found. Bookings will appear here once users make requests.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- View Booking Modal -->
+    <div id="bookingModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-info-circle"></i> Booking Details</h3>
+                <button class="close-modal" onclick="closeBookingModal()">✕</button>
+            </div>
+            <div class="modal-body" id="bookingModalBody"></div>
+        </div>
+    </div>
+
+    <style>
             .modal {
                 display: none;
                 position: fixed;
@@ -449,273 +666,18 @@
                     width: 140px;
                 }
 
-            /* ==================== MOBILE ==================== */
-            @@media (max-width: 1024px) {
-                .stats-grid {
-                    grid-template-columns: repeat(2, 1fr);
-                }
+            .driver-info {
+                background: #f8f4f0;
+                padding: 15px;
+                border-radius: 8px;
+                margin-top: 15px;
             }
 
-            @@media (max-width: 768px) {
-                .sidebar-toggle {
-                    display: block;
+                .driver-info h4 {
+                    color: var(--gold);
+                    margin-bottom: 10px;
                 }
-
-                .sidebar {
-                    left: -280px;
-                    width: 280px;
-                }
-
-                    .sidebar.open {
-                        left: 0;
-                    }
-
-                .main-content {
-                    margin-left: 0;
-                    padding: 70px 15px 20px;
-                }
-
-                .stats-grid {
-                    grid-template-columns: 1fr 1fr;
-                    gap: 15px;
-                }
-
-                .stat-card .stat-number {
-                    font-size: 24px;
-                }
-
-                .page-header h2 {
-                    font-size: 22px;
-                }
-
-                .filter-form {
-                    flex-direction: column;
-                }
-
-                .filter-group {
-                    width: 100%;
-                }
-
-                .sidebar-overlay.show {
-                    display: block;
-                }
-            }
-
-            @@media (max-width: 480px) {
-                .stats-grid {
-                    grid-template-columns: 1fr;
-                }
-            }
     </style>
-</head>
-<body>
-
-    <!-- Mobile Toggle -->
-    <button class="sidebar-toggle" onclick="toggleSidebar()">
-        <i class="fas fa-bars"></i>
-    </button>
-
-    <!-- Sidebar Overlay -->
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-
-    <!-- ==================== SIDEBAR ==================== -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-brand">
-            <h1>URBANDRIVE</h1>
-            <p>EXECUTIVE</p>
-        </div>
-
-        <div class="sidebar-divider"></div>
-
-        <nav class="sidebar-nav">
-            <a href="/Admin/Dashboard" class="sidebar-link">
-                <i class="fas fa-tachometer-alt"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="/Admin/Vehicles" class="sidebar-link">
-                <i class="fas fa-car"></i>
-                <span>Vehicles</span>
-            </a>
-            <a href="/Admin/Drivers" class="sidebar-link">
-                <i class="fas fa-users"></i>
-                <span>Drivers</span>
-            </a>
-            <a href="/Admin/Users/Index" class="sidebar-link">
-                <i class="fas fa-user-friends"></i>
-                <span>Users</span>
-            </a>
-            <a href="/Admin/Bookings" class="sidebar-link">
-                <i class="fas fa-calendar-alt"></i>
-                <span>Bookings</span>
-            </a>
-            <a href="/Admin/FuelRecords" class="sidebar-link active">
-                <i class="fas fa-gas-pump"></i>
-                <span>Fuel Records</span>
-            </a>
-            <a href="/Admin/FuelPriceSettings" class="sidebar-link">
-                <i class="fas fa-sliders-h"></i>
-                <span>Fuel Price</span>
-            </a>
-            <a href="/Admin/TripReports" class="sidebar-link">
-                <i class="fas fa-file-alt"></i>
-                <span>Trip Reports</span>
-            </a>
-        </nav>
-
-        <div class="sidebar-divider"></div>
-
-        <div class="sidebar-footer">
-            <a href="/Admin/Logout" class="sidebar-link">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Logout</span>
-            </a>
-            <div class="sidebar-user">
-                <i class="fas fa-user-circle"></i>
-                <span>@User.Identity?.Name ?? "Admin"</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- ==================== MAIN CONTENT ==================== -->
-    <div class="main-content">
-        <div class="page-header">
-            <h2><i class="fas fa-gas-pump" style="color: var(--gold); margin-right: 10px;"></i> Fuel Records</h2>
-            <p>Track fuel consumption, costs, and vehicle efficiency</p>
-        </div>
-
-        <!-- Filter Section -->
-        <div class="filter-card">
-            <form method="get" action="/Admin/FuelRecords">
-                <div class="filter-form">
-                    <div class="filter-group">
-                        <label><i class="fas fa-calendar"></i> From Date</label>
-                        <input type="date" name="fromDate" value="@ViewBag.FromDate">
-                    </div>
-                    <div class="filter-group">
-                        <label><i class="fas fa-calendar"></i> To Date</label>
-                        <input type="date" name="toDate" value="@ViewBag.ToDate">
-                    </div>
-                    <div class="filter-group">
-                        <label><i class="fas fa-car"></i> Vehicle</label>
-                        <select name="vehicleId">
-                            <option value="">All Vehicles</option>
-                            @if (ViewBag.Vehicles != null)
-                            {
-                                foreach (var v in ViewBag.Vehicles)
-                                {
-                                    <option value="@v.VehicleId">@v.RegistrationNumber - @v.Model</option>
-                                }
-                            }
-                        </select>
-                    </div>
-                    <div class="filter-group" style="display: flex; gap: 10px; align-items: center;">
-                        <button type="submit" class="btn-filter"><i class="fas fa-search"></i> Filter</button>
-                        <a href="/Admin/FuelRecords" class="btn-reset"><i class="fas fa-undo"></i> Reset</a>
-                    </div>
-                </div>
-            </form>
-        </div>
-
-        <!-- Stats Cards -->
-        <div class="stats-grid">
-            <div class="stat-card card-blue">
-                <i class="fas fa-gas-pump stat-icon"></i>
-                <div class="stat-label">Total Fuel</div>
-                <div class="stat-number">@(ViewBag.TotalLiters?.ToString("N0") ?? "0") L</div>
-                <div class="stat-change positive">
-                    <i class="fas fa-arrow-up"></i> Liters consumed
-                </div>
-            </div>
-
-            <div class="stat-card card-green">
-                <i class="fas fa-money-bill-wave stat-icon"></i>
-                <div class="stat-label">Total Cost</div>
-                <div class="stat-number">KES @(ViewBag.TotalCost?.ToString("N0") ?? "0")</div>
-                <div class="stat-change positive">
-                    <i class="fas fa-arrow-up"></i> Total fuel expenses
-                </div>
-            </div>
-
-            <div class="stat-card card-orange">
-                <i class="fas fa-chart-line stat-icon"></i>
-                <div class="stat-label">Total Records</div>
-                <div class="stat-number">@Model.Count</div>
-                <div class="stat-change positive">
-                    <i class="fas fa-check"></i> Fuel entries
-                </div>
-            </div>
-
-            <div class="stat-card card-purple">
-                <i class="fas fa-tachometer-alt stat-icon"></i>
-                <div class="stat-label">Avg Efficiency</div>
-                @{
-                    var totalLiters = ViewBag.TotalLiters ?? 0;
-                    var avgEfficiency = totalLiters > 0 && Model.Count > 0 ? (totalLiters / Model.Count) : 0;
-                }
-                <div class="stat-number">@avgEfficiency.ToString("N1") L</div>
-                <div class="stat-change positive">
-                    <i class="fas fa-arrow-up"></i> Average per trip
-                </div>
-            </div>
-        </div>
-
-        <!-- Fuel Records Table -->
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Vehicle</th>
-                        <th>Driver</th>
-                        <th>Liters</th>
-                        <th>Cost (KES)</th>
-                        <th>Mileage</th>
-                        <th>Receipt</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var record in Model)
-                    {
-                        <tr>
-                            <td>@record.DateIssued.ToString("MMM dd, yyyy")</td>
-                            <td>@(record.Vehicle?.RegistrationNumber ?? "N/A")</td>
-                            <td>@record.DriverId</td>
-                            <td>@record.FuelLiters L</td>
-                            <td>KES @record.FuelCost.ToString("N0")</td>
-                            <td>@record.CurrentMileage km</td>
-                            <td>@(record.ReceiptNumber ?? "N/A")</td>
-                            <td>
-                                <button class="btn-view" onclick="viewFuelRecord(@record.FuelRecordId)">
-                                    <i class="fas fa-eye"></i> View
-                                </button>
-                            </td>
-                        </tr>
-                    }
-                    @if (!Model.Any())
-                    {
-                        <tr>
-                            <td colspan="8" style="text-align:center; padding: 30px; color: #999;">
-                                <i class="fas fa-gas-pump" style="font-size: 24px; display: block; margin-bottom: 10px; color: var(--gold);"></i>
-                                No fuel records found. Start tracking fuel consumption by completing trips.
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- View Fuel Record Modal -->
-    <div id="fuelModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-gas-pump"></i> Fuel Record Details</h3>
-                <button class="close-modal" onclick="closeFuelModal()">✕</button>
-            </div>
-            <div class="modal-body" id="fuelModalBody"></div>
-        </div>
-    </div>
 
     <script>
             // ==================== SIDEBAR ====================
@@ -733,39 +695,52 @@
                 });
             });
 
-            // ==================== VIEW FUEL RECORD ====================
-            async function viewFuelRecord(id) {
-                const response = await fetch(`/Admin/GetFuelRecord/${id}`);
-                const record = await response.json();
+            // ==================== VIEW BOOKING ====================
+            async function viewBooking(bookingId) {
+                try {
+                    const response = await fetch(`/Admin/GetBookingDetails?bookingId=${bookingId}`);
+                    const data = await response.json();
 
-                if (record.success) {
-                    const html = `
-                        <div class="detail-row"><strong>Record ID:</strong> ${record.fuelRecordId}</div>
-                        <div class="detail-row"><strong>Date:</strong> ${record.dateIssued}</div>
-                        <div class="detail-row"><strong>Vehicle:</strong> ${record.vehicleReg} (${record.vehicleModel})</div>
-                        <div class="detail-row"><strong>Driver:</strong> ${record.driverName}</div>
-                        <div class="detail-row"><strong>Fuel Liters:</strong> ${record.fuelLiters} L</div>
-                        <div class="detail-row"><strong>Fuel Cost:</strong> KES ${record.fuelCost}</div>
-                        <div class="detail-row"><strong>Cost per Liter:</strong> KES ${record.costPerLiter}</div>
-                        <div class="detail-row"><strong>Current Mileage:</strong> ${record.currentMileage} km</div>
-                        <div class="detail-row"><strong>Receipt Number:</strong> ${record.receiptNumber || 'N/A'}</div>
-                        <div class="detail-row"><strong>Issued By:</strong> ${record.issuedByName}</div>
-                        <div class="detail-row"><strong>Notes:</strong> ${record.notes || 'No notes'}</div>
-                    `;
-                    document.getElementById('fuelModalBody').innerHTML = html;
-                    document.getElementById('fuelModal').classList.add('show');
-                } else {
-                    alert('Failed to load fuel record details');
+                    if (data.success) {
+                        let modalContent = `
+                            <div class="detail-row"><strong>Booking ID:</strong> #BK${data.booking.bookingId}</div>
+                            <div class="detail-row"><strong>Requester:</strong> ${data.booking.requesterName}</div>
+                            <div class="detail-row"><strong>Destination:</strong> ${data.booking.destination}</div>
+                            <div class="detail-row"><strong>Pickup Date:</strong> ${data.booking.startDate}</div>
+                            <div class="detail-row"><strong>Purpose:</strong> ${data.booking.purpose}</div>
+                            <div class="detail-row"><strong>Passengers:</strong> ${data.booking.passengers}</div>
+                            <div class="detail-row"><strong>Status:</strong> ${data.booking.status}</div>
+                        `;
+
+                        if (data.booking.driverName) {
+                            modalContent += `
+                                <div class="driver-info">
+                                    <h4><i class="fas fa-user-check"></i> Driver Details</h4>
+                                    <div class="detail-row"><strong>Driver Name:</strong> ${data.booking.driverName}</div>
+                                    <div class="detail-row"><strong>Driver Phone:</strong> ${data.booking.driverPhone || 'Pending'}</div>
+                                    <div class="detail-row"><strong>Vehicle:</strong> ${data.booking.vehicleModel || 'N/A'} (${data.booking.vehicleReg || 'N/A'})</div>
+                                </div>
+                            `;
+                        }
+
+                        document.getElementById('bookingModalBody').innerHTML = modalContent;
+                        document.getElementById('bookingModal').classList.add('show');
+                    } else {
+                        alert('Failed to load booking details');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred while loading booking details');
                 }
             }
 
-            function closeFuelModal() {
-                document.getElementById('fuelModal').classList.remove('show');
+            function closeBookingModal() {
+                document.getElementById('bookingModal').classList.remove('show');
             }
 
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') {
-                    closeFuelModal();
+                    closeBookingModal();
                 }
             });
     </script>

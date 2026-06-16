@@ -17,6 +17,7 @@ namespace UrbanDrive.Data
         public DbSet<Allocation> Allocations { get; set; }
         public DbSet<FuelRecord> FuelRecords { get; set; }
         public DbSet<TripReport> TripReports { get; set; }
+        public DbSet<FuelPriceSettings> FuelPrices { get; set; }
         public DbSet<EmailLog> EmailLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
