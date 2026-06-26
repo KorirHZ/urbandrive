@@ -56,7 +56,7 @@ namespace UrbanDrive.Controllers
                 return View();
             }
 
-            // 🔴 DEVELOPMENT: Skip email verification check (user.IsEmailVerified is now always true)
+            // email verification check (user.IsEmailVerified is now always true)
             // if (!user.IsEmailVerified && user.Role == "User")
             // {
             //     TempData["ErrorMessage"] = "Please verify your email before logging in.";
@@ -72,7 +72,7 @@ namespace UrbanDrive.Controllers
                 new Claim(ClaimTypes.Role, user.Role)
             };
 
-            // 🔴 FIXED: Use "CookieAuth" to match Program.cs
+            //  FIXED: Use "CookieAuth" to match Program.cs
             var identity = new ClaimsIdentity(claims, "CookieAuth");
             var principal = new ClaimsPrincipal(identity);
 
@@ -82,7 +82,7 @@ namespace UrbanDrive.Controllers
                 ExpiresUtc = DateTimeOffset.UtcNow.AddHours(8)
             };
 
-            // 🔴 FIXED: Use "CookieAuth" to match Program.cs
+            // FIXED: Use "CookieAuth" to match Program.cs
             await HttpContext.SignInAsync("CookieAuth", principal, authProperties);
 
             // Update last login
@@ -132,7 +132,7 @@ namespace UrbanDrive.Controllers
                 PhoneNumber = phoneNumber,
                 Role = "User",
                 IsActive = true,
-                IsEmailVerified = true,  // 🔴 DEVELOPMENT: Auto-verified (no email verification needed)
+                IsEmailVerified = true, 
                 RegisteredAt = DateTime.Now,
                 EmailVerificationToken = _userService.GenerateToken()
             };
@@ -145,7 +145,7 @@ namespace UrbanDrive.Controllers
                 return View();
             }
 
-            // 🔴 DEVELOPMENT: COMMENT OUT verification email (keep other emails working)
+           
             // var verificationLink = Url.Action("VerifyEmail", "Account", new { email = user.Email, token = user.EmailVerificationToken }, Request.Scheme);
             // var placeholders = new Dictionary<string, string>
             // {
@@ -154,7 +154,7 @@ namespace UrbanDrive.Controllers
             // };
             // await _emailService.SendEmailWithTemplateAsync(user.Email, user.FullName, "EmailVerification", placeholders);
 
-            // 🔴 DEVELOPMENT: Console log instead of sending email
+           
             Console.WriteLine($"[DEV MODE] User registered: {email} (auto-verified, no verification email sent)");
             Console.WriteLine($"   Verification token would be: {user.EmailVerificationToken}");
             Console.WriteLine($"   Verification link would be: {Url.Action("VerifyEmail", "Account", new { email = user.Email, token = user.EmailVerificationToken }, Request.Scheme)}");
@@ -260,7 +260,7 @@ namespace UrbanDrive.Controllers
         // GET: Logout
         public async Task<IActionResult> Logout()
         {
-            // 🔴 FIXED: Use "CookieAuth" to match Program.cs
+            
             await HttpContext.SignOutAsync("CookieAuth");
             return RedirectToAction("Login");
         }
@@ -292,7 +292,7 @@ namespace UrbanDrive.Controllers
 
                 // Send test email to yourself
                 await _emailService.SendEmailAsync(
-                    "swiftbuyventuresceo@gmail.com",  // Change to your email
+                    "swiftbuyventuresceo@gmail.com",  
                     "UrbanDrive Admin",
                     "UrbanDrive Email Test",
                     @"
@@ -305,7 +305,7 @@ namespace UrbanDrive.Controllers
                 <p><strong>Status:</strong> ✅ Email system is operational</p>
                 <hr>
                 <p>Next steps:</p>
-                <ul>
+                <ul>,
                     <li>Test booking notification</li>
                     <li>Test approval notification</li>
                 </ul>

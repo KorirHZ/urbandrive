@@ -235,6 +235,28 @@ namespace UrbanDrive.Migrations
                     b.ToTable("EmailLogs");
                 });
 
+            modelBuilder.Entity("UrbanDrive.Models.FuelPrice", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("PricePerLiter")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UpdatedBy")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("FuelPrices");
+                });
+
             modelBuilder.Entity("UrbanDrive.Models.FuelRecord", b =>
                 {
                     b.Property<int>("FuelRecordId")
