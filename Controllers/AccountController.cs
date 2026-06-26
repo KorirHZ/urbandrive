@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using UrbanDrive.Data;
@@ -56,13 +55,6 @@ namespace UrbanDrive.Controllers
                 return View();
             }
 
-            // email verification check (user.IsEmailVerified is now always true)
-            // if (!user.IsEmailVerified && user.Role == "User")
-            // {
-            //     TempData["ErrorMessage"] = "Please verify your email before logging in.";
-            //     return View();
-            // }
-
             // Create authentication cookie
             var claims = new List<Claim>
             {
@@ -72,7 +64,6 @@ namespace UrbanDrive.Controllers
                 new Claim(ClaimTypes.Role, user.Role)
             };
 
-            //  FIXED: Use "CookieAuth" to match Program.cs
             var identity = new ClaimsIdentity(claims, "CookieAuth");
             var principal = new ClaimsPrincipal(identity);
 
@@ -82,7 +73,6 @@ namespace UrbanDrive.Controllers
                 ExpiresUtc = DateTimeOffset.UtcNow.AddHours(8)
             };
 
-            // FIXED: Use "CookieAuth" to match Program.cs
             await HttpContext.SignInAsync("CookieAuth", principal, authProperties);
 
             // Update last login
@@ -97,7 +87,7 @@ namespace UrbanDrive.Controllers
             return RedirectToDashboard(user.Role);
         }
 
-        // GET: Register page (only for User role)
+        // GET: Register page
         public IActionResult Register()
         {
             if (User.Identity.IsAuthenticated)
@@ -132,7 +122,7 @@ namespace UrbanDrive.Controllers
                 PhoneNumber = phoneNumber,
                 Role = "User",
                 IsActive = true,
-                IsEmailVerified = true, 
+                IsEmailVerified = true, // Development: auto-verified
                 RegisteredAt = DateTime.Now,
                 EmailVerificationToken = _userService.GenerateToken()
             };
@@ -145,19 +135,8 @@ namespace UrbanDrive.Controllers
                 return View();
             }
 
-           
-            // var verificationLink = Url.Action("VerifyEmail", "Account", new { email = user.Email, token = user.EmailVerificationToken }, Request.Scheme);
-            // var placeholders = new Dictionary<string, string>
-            // {
-            //     { "FullName", user.FullName },
-            //     { "VerificationLink", verificationLink }
-            // };
-            // await _emailService.SendEmailWithTemplateAsync(user.Email, user.FullName, "EmailVerification", placeholders);
-
-           
-            Console.WriteLine($"[DEV MODE] User registered: {email} (auto-verified, no verification email sent)");
-            Console.WriteLine($"   Verification token would be: {user.EmailVerificationToken}");
-            Console.WriteLine($"   Verification link would be: {Url.Action("VerifyEmail", "Account", new { email = user.Email, token = user.EmailVerificationToken }, Request.Scheme)}");
+            // Development: Skip verification email
+            Console.WriteLine($"[DEV MODE] User registered: {email} (auto-verified)");
 
             TempData["SuccessMessage"] = "Registration successful! You can now login.";
             return RedirectToAction("Login");
@@ -260,7 +239,6 @@ namespace UrbanDrive.Controllers
         // GET: Logout
         public async Task<IActionResult> Logout()
         {
-            
             await HttpContext.SignOutAsync("CookieAuth");
             return RedirectToAction("Login");
         }
@@ -281,44 +259,6 @@ namespace UrbanDrive.Controllers
                 "User" => RedirectToAction("Dashboard", "User"),
                 _ => RedirectToAction("Login")
             };
-        }
-        // GET: Test Email - Remove after testing
-        [HttpGet]
-        public async Task<IActionResult> TestEmail()
-        {
-            try
-            {
-                Console.WriteLine("=== TEST EMAIL STARTED ===");
-
-                // Send test email to yourself
-                await _emailService.SendEmailAsync(
-                    "swiftbuyventuresceo@gmail.com",  
-                    "UrbanDrive Admin",
-                    "UrbanDrive Email Test",
-                    @"
-            <html>
-            <body style='font-family: Arial, sans-serif;'>
-                <h2 style='color: #DAA520;'>UrbanDrive Email Test</h2>
-                <p>If you received this email, your SMTP configuration is WORKING!</p>
-                <hr>
-                <p><strong>Time:</strong> " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + @"</p>
-                <p><strong>Status:</strong> ✅ Email system is operational</p>
-                <hr>
-                <p>Next steps:</p>
-                <ul>,
-                    <li>Test booking notification</li>
-                    <li>Test approval notification</li>
-                </ul>
-            </body>
-            </html>"
-                );
-
-                return Content("✅ Test email sent! Check your inbox (and spam folder).");
-            }
-            catch (Exception ex)
-            {
-                return Content($"❌ Error sending email: {ex.Message}\n\nStack Trace: {ex.StackTrace}");
-            }
         }
     }
 }
